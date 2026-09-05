@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="common.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="keyboard.css">
 <style>
   body{
     background: linear-gradient(135deg, #cfe4ff 0%, #ded4f6 30%, #f3d7ec 65%, #fbe6da 100%);
@@ -170,53 +171,7 @@
   .pip{ width:28px; height:34px; border-radius:8px; flex:0 0 auto; background:#e1d6ec; border:1px solid #c6b6dd; box-shadow:inset 0 1px 2px rgba(0,0,0,.1); }
   .pip.filled{ background:linear-gradient(180deg,#ff8fa6,#ff6f91); border-color:#e85a7f; }
 
-  /* ---------- Keyboard (copied from coding-playground key_macaron.html) ---------- */
-  .kb-scroll{ max-width:100%; overflow-x:auto; padding:0 13px 13px 0; scrollbar-width:none; -ms-overflow-style:none; }
-  .kb-scroll::-webkit-scrollbar{ display:none; }
-  .keyboard-housing{
-    position:relative; display:flex; gap:28px; padding:30px; background:#fffaf2; border-radius:40px;
-    border:7px solid #e2d4c9; box-shadow:11px 11px 0 #d5c6b9;
-    align-items:flex-start; width:fit-content;
-  }
-  .key{
-    width:52px; height:52px; border-radius:14px; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; font-size:16px; font-weight:bold; color:#333;
-    border:2px solid #a69c94; box-shadow:3px 3px 0 #a69c94; box-sizing:border-box; background:#fff;
-    position:relative; z-index:2; transition:all .15s cubic-bezier(.34,1.56,.64,1);
-  }
-  .key .top-char{ font-size:11px; color:#444; font-weight:bold; margin-bottom:1px; transition:color .15s; }
-  .key .bottom-char{ font-size:17px; font-weight:900; color:#111; }
-  .key.pressed{
-    transform:scale(1.3); background-color:#fff176 !important; color:#d84315 !important;
-    border-color:#ffd54f !important; box-shadow:0 0 15px rgba(255,235,59,.8), 3px 3px 0 #ffca28 !important; z-index:10;
-  }
-  .key.pressed .top-char{ color:#d84315 !important; }
-
-  .main-block{ display:flex; flex-direction:column; width:850px; }
-  .f-row-group{ display:flex; justify-content:space-between; margin-bottom:20px; }
-  .keys-section{ display:flex; flex-direction:column; gap:6px; }
-  .row{ display:flex; gap:6px; height:52px; }
-  .middle-block{ display:grid; grid-template-columns:repeat(3,52px); grid-template-rows:repeat(6,52px); gap:6px; margin-top:14px; }
-  .right-block{ display:grid; grid-template-columns:repeat(4,52px); grid-template-rows:repeat(6,52px); gap:6px; margin-top:14px; }
-
-  .c-esc{ background:#fca397; border-color:#cc7366; box-shadow:3px 3px 0 #cc7366; color:#fff; }
-  .c-fkey{ background:#c8e6c9; border-color:#8ebf90; box-shadow:3px 3px 0 #8ebf90; }
-  .c-numrow{ background:#ffccbc; border-color:#ffab91; box-shadow:3px 3px 0 #ffab91; }
-  .c-letter{ background:#b3e5fc; border-color:#62bde6; box-shadow:3px 3px 0 #62bde6; }
-  .c-special{ background:#d1c4e9; border-color:#9c84c7; box-shadow:3px 3px 0 #9c84c7; }
-  .c-space{ background:#ffe082; border-color:#e6bb35; box-shadow:3px 3px 0 #e6bb35; color:#997a00; font-size:18px; font-weight:900; }
-  .c-arrow{ background:#c8e6c9; border-color:#8ebf90; box-shadow:3px 3px 0 #8ebf90; font-size:20px; }
-  .c-numpad{ background:#f8bbd0; border-color:#d97396; box-shadow:3px 3px 0 #d97396; }
-  .c-num-enter{ background:#c8e6c9; border-color:#8ebf90; box-shadow:3px 3px 0 #8ebf90; }
-
-  .w-back{ width:98px; font-size:18px; } .w-tab{ width:98px; } .w-caps{ width:98px; } .w-main-enter{ width:110px; }
-  .w-shift{ width:132px; } .w-ctrl-side{ width:63px; } .w-space{ width:432px; }
-  .h-double{ grid-row:span 2; height:110px; } .w-double{ grid-column:span 2; width:110px; }
-
-  .led-container{ grid-column:span 4; display:flex; justify-content:space-around; align-items:center; font-size:11px; color:#888; font-weight:bold; }
-  .led-dot{ width:9px; height:9px; background:#d3d3d3; border:1px solid #bbb; border-radius:50%; margin-bottom:4px; box-shadow:inset 0 1px 3px rgba(0,0,0,.3); transition:all .2s; }
-  .led-dot.active{ background:#00ff00; border-color:#00dd00; box-shadow:0 0 8px #00ff00, inset 0 1px 2px rgba(255,255,255,.8); transform:scale(1.1); }
-  .led-text.active{ color:#4caf50; }
+  /* ---------- Keyboard: see keyboard.css ---------- */
 
   /* ---------- Complete overlay ---------- */
   #final-popup{
@@ -324,115 +279,7 @@
           <input type="text" id="sentence-input" class="sentence-line" autocomplete="off" autofocus>
         </div>
 
-        <div class="kb-scroll">
-          <div class="keyboard-housing" id="keyboard-housing">
-            <!-- 1. 메인 키보드 -->
-            <div class="main-block">
-          <div class="f-row-group">
-            <div class="key c-esc" id="key-Escape">Esc</div>
-            <div style="display:flex; gap:6px;"><div class="key c-fkey" id="key-F1">F1</div><div class="key c-fkey" id="key-F2">F2</div><div class="key c-fkey" id="key-F3">F3</div><div class="key c-fkey" id="key-F4">F4</div></div>
-            <div style="display:flex; gap:6px;"><div class="key c-fkey" id="key-F5">F5</div><div class="key c-fkey" id="key-F6">F6</div><div class="key c-fkey" id="key-F7">F7</div><div class="key c-fkey" id="key-F8">F8</div></div>
-            <div style="display:flex; gap:6px;"><div class="key c-fkey" id="key-F9">F9</div><div class="key c-fkey" id="key-F10">F10</div><div class="key c-fkey" id="key-F11">F11</div><div class="key c-fkey" id="key-F12">F12</div></div>
-          </div>
-          <div class="keys-section">
-            <div class="row">
-              <div class="key c-numrow" id="key-Backquote"><div class="top-char">~</div><div class="bottom-char">`</div></div>
-              <div class="key c-numrow" id="key-Digit1"><div class="top-char">!</div><div class="bottom-char">1</div></div>
-              <div class="key c-numrow" id="key-Digit2"><div class="top-char">@</div><div class="bottom-char">2</div></div>
-              <div class="key c-numrow" id="key-Digit3"><div class="top-char">#</div><div class="bottom-char">3</div></div>
-              <div class="key c-numrow" id="key-Digit4"><div class="top-char">$</div><div class="bottom-char">4</div></div>
-              <div class="key c-numrow" id="key-Digit5"><div class="top-char">%</div><div class="bottom-char">5</div></div>
-              <div class="key c-numrow" id="key-Digit6"><div class="top-char">^</div><div class="bottom-char">6</div></div>
-              <div class="key c-numrow" id="key-Digit7"><div class="top-char">&amp;</div><div class="bottom-char">7</div></div>
-              <div class="key c-numrow" id="key-Digit8"><div class="top-char">*</div><div class="bottom-char">8</div></div>
-              <div class="key c-numrow" id="key-Digit9"><div class="top-char">(</div><div class="bottom-char">9</div></div>
-              <div class="key c-numrow" id="key-Digit0"><div class="top-char">)</div><div class="bottom-char">0</div></div>
-              <div class="key c-numrow" id="key-Minus"><div class="top-char">_</div><div class="bottom-char">-</div></div>
-              <div class="key c-numrow" id="key-Equal"><div class="top-char">+</div><div class="bottom-char">=</div></div>
-              <div class="key c-special w-back" id="key-Backspace">←</div>
-            </div>
-            <div class="row">
-              <div class="key c-special w-tab" id="key-Tab">Tab ⇥</div>
-              <div class="key c-letter" id="key-KeyQ"><div class="top-char">Q</div><div class="bottom-char">ㅂ</div></div>
-              <div class="key c-letter" id="key-KeyW"><div class="top-char">W</div><div class="bottom-char">ㅈ</div></div>
-              <div class="key c-letter" id="key-KeyE"><div class="top-char">E</div><div class="bottom-char">ㄷ</div></div>
-              <div class="key c-letter" id="key-KeyR"><div class="top-char">R</div><div class="bottom-char">ㄱ</div></div>
-              <div class="key c-letter" id="key-KeyT"><div class="top-char">T</div><div class="bottom-char">ㅅ</div></div>
-              <div class="key c-letter" id="key-KeyY"><div class="top-char">Y</div><div class="bottom-char">ㅛ</div></div>
-              <div class="key c-letter" id="key-KeyU"><div class="top-char">U</div><div class="bottom-char">ㅕ</div></div>
-              <div class="key c-letter" id="key-KeyI"><div class="top-char">I</div><div class="bottom-char">ㅑ</div></div>
-              <div class="key c-letter" id="key-KeyO"><div class="top-char">O</div><div class="bottom-char">ㅐ</div></div>
-              <div class="key c-letter" id="key-KeyP"><div class="top-char">P</div><div class="bottom-char">ㅔ</div></div>
-              <div class="key c-letter" id="key-BracketLeft"><div class="top-char">{</div><div class="bottom-char">[</div></div>
-              <div class="key c-letter" id="key-BracketRight"><div class="top-char">}</div><div class="bottom-char">]</div></div>
-              <div class="key c-letter" id="key-Backslash"><div class="top-char">|</div><div class="bottom-char">\</div></div>
-            </div>
-            <div class="row">
-              <div class="key c-special w-caps" id="key-CapsLock">Caps</div>
-              <div class="key c-letter" id="key-KeyA"><div class="top-char">A</div><div class="bottom-char">ㅁ</div></div>
-              <div class="key c-letter" id="key-KeyS"><div class="top-char">S</div><div class="bottom-char">ㄴ</div></div>
-              <div class="key c-letter" id="key-KeyD"><div class="top-char">D</div><div class="bottom-char">ㅇ</div></div>
-              <div class="key c-letter" id="key-KeyF"><div class="top-char">F</div><div class="bottom-char">ㄹ</div></div>
-              <div class="key c-letter" id="key-KeyG"><div class="top-char">G</div><div class="bottom-char">ㅎ</div></div>
-              <div class="key c-letter" id="key-KeyH"><div class="top-char">H</div><div class="bottom-char">ㅗ</div></div>
-              <div class="key c-letter" id="key-KeyJ"><div class="top-char">J</div><div class="bottom-char">ㅓ</div></div>
-              <div class="key c-letter" id="key-KeyK"><div class="top-char">K</div><div class="bottom-char">ㅏ</div></div>
-              <div class="key c-letter" id="key-KeyL"><div class="top-char">L</div><div class="bottom-char">ㅣ</div></div>
-              <div class="key c-letter" id="key-Semicolon"><div class="top-char">:</div><div class="bottom-char">;</div></div>
-              <div class="key c-letter" id="key-Quote"><div class="top-char">"</div><div class="bottom-char">'</div></div>
-              <div class="key c-special w-main-enter" id="key-Enter">Enter ↵</div>
-            </div>
-            <div class="row">
-              <div class="key c-special w-shift" id="key-ShiftLeft">Shift</div>
-              <div class="key c-letter" id="key-KeyZ"><div class="top-char">Z</div><div class="bottom-char">ㅋ</div></div>
-              <div class="key c-letter" id="key-KeyX"><div class="top-char">X</div><div class="bottom-char">ㅌ</div></div>
-              <div class="key c-letter" id="key-KeyC"><div class="top-char">C</div><div class="bottom-char">ㅊ</div></div>
-              <div class="key c-letter" id="key-KeyV"><div class="top-char">V</div><div class="bottom-char">ㅍ</div></div>
-              <div class="key c-letter" id="key-KeyB"><div class="top-char">B</div><div class="bottom-char">ㅠ</div></div>
-              <div class="key c-letter" id="key-KeyN"><div class="top-char">N</div><div class="bottom-char">ㅜ</div></div>
-              <div class="key c-letter" id="key-KeyM"><div class="top-char">M</div><div class="bottom-char">ㅡ</div></div>
-              <div class="key c-letter" id="key-Comma"><div class="top-char">&lt;</div><div class="bottom-char">,</div></div>
-              <div class="key c-letter" id="key-Period"><div class="top-char">&gt;</div><div class="bottom-char">.</div></div>
-              <div class="key c-letter" id="key-Slash"><div class="top-char">?</div><div class="bottom-char">/</div></div>
-              <div class="key c-special w-shift" id="key-ShiftRight">Shift</div>
-            </div>
-            <div class="row">
-              <div class="key c-special w-ctrl-side" id="key-ControlLeft">Ctrl</div>
-              <div class="key c-special w-ctrl-side" id="key-MetaLeft">Win</div>
-              <div class="key c-special w-ctrl-side" id="key-AltLeft">Alt</div>
-              <div class="key c-space w-space" id="key-Space">Space</div>
-              <div class="key c-special w-ctrl-side" id="key-HangulMode">한/영</div>
-              <div class="key c-special w-ctrl-side" id="key-AltRight">Alt</div>
-              <div class="key c-special w-ctrl-side" id="key-ControlRight">Ctrl</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. 중간 기능키 / 방향키 -->
-        <div class="middle-block">
-          <div></div><div></div><div></div>
-          <div class="key c-special" style="grid-row:2;grid-column:1;" id="key-Insert">Ins</div><div class="key c-special" style="grid-row:2;grid-column:2;" id="key-Home">Home</div><div class="key c-special" style="grid-row:2;grid-column:3;" id="key-PageUp">PgUp</div>
-          <div class="key c-special" style="grid-row:3;grid-column:1;" id="key-Delete">Del</div><div class="key c-special" style="grid-row:3;grid-column:2;" id="key-End">End</div><div class="key c-special" style="grid-row:3;grid-column:3;" id="key-PageDown">PgDn</div>
-          <div></div><div></div><div></div>
-          <div class="key c-arrow" style="grid-row:5;grid-column:2;" id="key-ArrowUp">↑</div>
-          <div class="key c-arrow" style="grid-row:6;grid-column:1;" id="key-ArrowLeft">←</div><div class="key c-arrow" style="grid-row:6;grid-column:2;" id="key-ArrowDown">↓</div><div class="key c-arrow" style="grid-row:6;grid-column:3;" id="key-ArrowRight">→</div>
-        </div>
-
-        <!-- 3. 오른쪽 숫자 패드 -->
-        <div class="right-block">
-          <div class="led-container" style="grid-row:1;">
-            <div style="text-align:center;display:flex;flex-direction:column;align-items:center;"><div id="led-num-dot" class="led-dot"></div><span id="led-num-text" class="led-text">Num</span></div>
-            <div style="text-align:center;display:flex;flex-direction:column;align-items:center;"><div id="led-caps-dot" class="led-dot"></div><span id="led-caps-text" class="led-text">Caps</span></div>
-            <div style="text-align:center;display:flex;flex-direction:column;align-items:center;"><div id="led-scroll-dot" class="led-dot"></div><span id="led-scroll-text" class="led-text">Scroll</span></div>
-          </div>
-          <div class="key c-numpad" id="key-NumLock" style="grid-row:2;grid-column:1;">Num</div><div class="key c-numpad" id="key-NumpadDivide" style="grid-row:2;grid-column:2;">/</div><div class="key c-numpad" id="key-NumpadMultiply" style="grid-row:2;grid-column:3;">*</div><div class="key c-numpad" id="key-NumpadSubtract" style="grid-row:2;grid-column:4;">-</div>
-          <div class="key c-numpad" id="key-Numpad7" style="grid-row:3;grid-column:1;">7</div><div class="key c-numpad" id="key-Numpad8" style="grid-row:3;grid-column:2;">8</div><div class="key c-numpad" id="key-Numpad9" style="grid-row:3;grid-column:3;">9</div><div class="key c-numpad h-double" id="key-NumpadAdd" style="grid-row:3 / span 2;grid-column:4;">+</div>
-          <div class="key c-numpad" id="key-Numpad4" style="grid-row:4;grid-column:1;">4</div><div class="key c-numpad" id="key-Numpad5" style="grid-row:4;grid-column:2;">5</div><div class="key c-numpad" id="key-Numpad6" style="grid-row:4;grid-column:3;">6</div>
-          <div class="key c-numpad" id="key-Numpad1" style="grid-row:5;grid-column:1;">1</div><div class="key c-numpad" id="key-Numpad2" style="grid-row:5;grid-column:2;">2</div><div class="key c-numpad" id="key-Numpad3" style="grid-row:5;grid-column:3;">3</div><div class="key c-num-enter h-double" id="key-NumpadEnter" style="grid-row:5 / span 2;grid-column:4;">Enter</div>
-          <div class="key c-numpad w-double" id="key-Numpad0" style="grid-row:6;grid-column:1 / span 2;">0</div><div class="key c-numpad" id="key-NumpadDecimal" style="grid-row:6;grid-column:3;">.</div>
-        </div>
-          </div>
-        </div>
+        <div class="kb-scroll" id="keyboard-mount"></div>
       </div>
 
       <div class="side-col">
@@ -470,6 +317,7 @@
   </div>
 </div>
 
+<script src="keyboard.js"></script>
 <script>
 (function(){
   "use strict";
@@ -970,34 +818,8 @@
   });
 
   // ---- Keyboard press flash (visual only; correctness is judged via #sentence-input) ----
-  function keyEl(code){ return document.getElementById("key-" + code); }
-  var keyMap = {
-    'AltRight': 'HangulMode', 'Lang1': 'HangulMode', 'HangulMode': 'HangulMode',
-    'Hanja': 'AltRight', 'Lang2': 'AltRight',
-    'ControlRight': 'ControlRight', 'MetaRight': 'MetaLeft'
-  };
-  function getExactKeyCode(event){
-    var code = event.code;
-    if (!code || code === 'Shift' || code === 'Control' || code === 'Alt'){
-      if (event.key === 'Shift') code = (event.location === 2) ? 'ShiftRight' : 'ShiftLeft';
-      else if (event.key === 'Control') code = (event.location === 2) ? 'ControlRight' : 'ControlLeft';
-      else if (event.key === 'Alt') code = (event.location === 2) ? 'AltRight' : 'AltLeft';
-    }
-    return keyMap[code] || code;
-  }
-  function updateLEDs(event){
-    if (event.getModifierState){
-      var isNumOn = event.getModifierState('NumLock');
-      var isCapsOn = event.getModifierState('CapsLock');
-      var isScrollOn = event.getModifierState('ScrollLock');
-      document.getElementById('led-num-dot').classList.toggle('active', isNumOn);
-      document.getElementById('led-num-text').classList.toggle('active', isNumOn);
-      document.getElementById('led-caps-dot').classList.toggle('active', isCapsOn);
-      document.getElementById('led-caps-text').classList.toggle('active', isCapsOn);
-      document.getElementById('led-scroll-dot').classList.toggle('active', isScrollOn);
-      document.getElementById('led-scroll-text').classList.toggle('active', isScrollOn);
-    }
-  }
+  // keyEl/getExactKeyCode/updateLEDs/renderKeyboard come from keyboard.js
+  renderKeyboard('keyboard-mount');
 
   document.addEventListener('keydown', function(event){
     if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Tab'].indexOf(event.code) !== -1 || event.code.match(/^F\d+$/)) {
