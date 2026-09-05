@@ -79,6 +79,7 @@
   .icon-btn:active{ transform:translateY(3px); box-shadow:none; }
   .icon-btn.home{ background:#7b61ff; box-shadow:0 3px 0 #5e35b1; }
   .icon-btn.mute{ background:#4fc3d9; box-shadow:0 3px 0 #2f9db3; }
+  .icon-btn.off{ background:#8a94a3; box-shadow:0 3px 0 #66707d; }
 
   /* ---------- Scene ---------- */
   .scene{
@@ -251,6 +252,7 @@
       <div class="tab-label"><i class="fa-solid fa-star"></i><span id="stage-name-label">낱말연습</span></div>
       <div class="top-controls">
         <button class="icon-btn mute" id="btn-mute" title="소리 켜기/끄기"><i class="fa-solid fa-volume-high" id="mute-icon"></i></button>
+        <button class="icon-btn" id="btn-flash" title="키보드 불빛 켜기/끄기"><i class="fa-solid fa-lightbulb" id="flash-icon"></i></button>
         <button class="icon-btn home" id="btn-back" title="처음으로"><i class="fa-solid fa-house"></i></button>
       </div>
     </div>
@@ -432,6 +434,7 @@
   var avatarSlot = document.getElementById("avatar-slot");
   var lvBadge = document.getElementById("lv-badge");
   var muteBtn = document.getElementById("btn-mute");
+  var flashBtn = document.getElementById("btn-flash");
   var wordInput = document.getElementById("word-input");
   var guideMsgEl = document.getElementById("guide-msg");
 
@@ -441,6 +444,7 @@
   var attemptsCorrect = 0, attemptsWrong = 0;
   var listening = false;
   var muted = false;
+  var flashOn = true;
   var isComposing = false;
 
   // ---- Audio (no external assets) ----
@@ -467,6 +471,17 @@
   muteBtn.addEventListener("click", function(){
     muted = !muted;
     muteIcon.className = muted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
+    wordInput.focus();
+  });
+
+  var flashIcon = document.getElementById("flash-icon");
+  flashBtn.addEventListener("click", function(){
+    flashOn = !flashOn;
+    flashIcon.className = flashOn ? "fa-solid fa-lightbulb" : "fa-regular fa-lightbulb";
+    flashBtn.classList.toggle("off", !flashOn);
+    if (!flashOn){
+      document.querySelectorAll('.key.pressed').forEach(function(k){ k.classList.remove('pressed'); });
+    }
     wordInput.focus();
   });
 
@@ -753,7 +768,7 @@
     var code = getExactKeyCode(event);
     var kElAny = keyEl(code);
     if (!kElAny && event.key.match(/^F\d+$/)) kElAny = document.getElementById('key-' + event.key);
-    if (kElAny) kElAny.classList.add('pressed');
+    if (kElAny && flashOn) kElAny.classList.add('pressed');
     updateLEDs(event);
   });
 
