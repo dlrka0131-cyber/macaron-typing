@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마카롱 타자연습 - 장문연습</title>
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  body{
+    background: linear-gradient(135deg, #cfe4ff 0%, #ded4f6 30%, #f3d7ec 65%, #fbe6da 100%);
+    display:flex; flex-direction:column; justify-content:flex-start; align-items:center;
+    min-height:100vh; margin:0; padding:20px 0 50px 0; font-family:sans-serif;
+    position:relative; box-sizing:border-box; background-repeat:no-repeat; background-attachment:fixed;
+    overflow-x:hidden;
+  }
+  *{box-sizing:border-box;}
+  [hidden]{ display:none !important; }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background-image:
+      radial-gradient(ellipse 240px 100px at 8% 12%, rgba(255,255,255,.6), transparent 70%),
+      radial-gradient(ellipse 280px 110px at 88% 8%, rgba(255,255,255,.55), transparent 70%),
+      radial-gradient(ellipse 220px 90px at 78% 88%, rgba(255,255,255,.5), transparent 70%),
+      radial-gradient(ellipse 260px 100px at 12% 90%, rgba(255,255,255,.45), transparent 70%),
+      radial-gradient(ellipse 200px 80px at 50% 4%, rgba(255,255,255,.4), transparent 70%);
+    filter: blur(4px);
+  }
+  .stars{ position:fixed; inset:0; z-index:-1; pointer-events:none; }
+  .star{ position:absolute; width:3px; height:3px; background:#fff; border-radius:50%; box-shadow:0 0 6px 2px rgba(255,255,255,.8); animation:twinkle 1.8s ease-in-out infinite; }
+  @keyframes twinkle{
+    0%,100%{ opacity:.15; transform:scale(.6); box-shadow:0 0 4px 1px rgba(255,255,255,.4); }
+    50%{ opacity:1; transform:scale(1.7); box-shadow:0 0 16px 5px rgba(255,255,255,1); }
+  }
+  .screen{ width:100%; display:flex; flex-direction:column; align-items:center; }
+
+  /* ---------- Story select ---------- */
+  .header-section{ text-align:center; margin-top:10px; margin-bottom:10px; }
+  .main-title{ font-family:'ONEMobilePOP', sans-serif; font-size:55px; color:#5e35b1; text-shadow:2px 2px 0 #fff; margin-bottom:20px; }
+  .sub-desc{ font-size:18px; background:#fff; padding:10px 22px; border-radius:30px; color:#5e35b1; display:inline-block; box-shadow:0 4px 10px rgba(0,0,0,.06); font-weight:bold; }
+  .home-btn{ background:#fff; color:#5e35b1; border-color:#5e35b1; box-shadow:0 6px 0 #dcd6ff; font-size:18px; padding:12px 22px; display:flex; align-items:center; gap:8px; }
+  .story-grid{ display:flex; flex-direction:column; gap:20px; margin-top:20px; align-items:center; padding:10px; }
+  .lang-divider{ display:flex; align-items:center; gap:14px; width:100%; max-width:900px; margin-top:10px; font-size:16px; font-weight:bold; color:#5e35b1; }
+  .lang-divider::before, .lang-divider::after{ content:""; flex:1; height:3px; background:#d8cff5; border-radius:2px; }
+  .story-row{ display:flex; gap:20px; flex-wrap:wrap; justify-content:center; max-width:1300px; }
+  .story-card{
+    flex:0 0 auto; width:200px; height:240px; background:#fff; border-radius:50px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-shadow:0 10px 30px rgba(91,58,138,.15); text-decoration:none; transition:.3s;
+    position:relative; border:3px solid #e5deff; cursor:pointer;
+  }
+  .story-card:hover{ transform:translateY(-8px); background:#faf8ff; box-shadow:0 20px 40px rgba(91,58,138,.3); border-color:#5b3a8a; }
+  .story-card.locked{ cursor:default; opacity:.55; }
+  .story-card.locked:hover{ transform:none; box-shadow:0 10px 30px rgba(91,58,138,.15); border-color:#e5deff; }
+  .story-badge{ position:absolute; top:18px; background:#f3edff; color:#5b3a8a; padding:5px 14px; border-radius:20px; font-size:14px; font-weight:bold; }
+  .story-icon{ font-size:56px; margin-top:16px; margin-bottom:8px; }
+  .story-title{ font-size:20px; color:#5b3a8a; font-family:'ONEMobilePOP', sans-serif; text-align:center; padding:0 8px; }
+  .story-desc{ font-size:13px; color:#9c8fc7; margin-top:4px; padding:0 12px; text-align:center; }
+
+  /* ---------- Game top bar ---------- */
+  .game-wrap{ width:100%; max-width:1500px; padding:0 16px; }
+  .top-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg,#3a5568,#25384a); border-radius:16px; padding:10px 16px;
+    box-shadow:0 6px 0 #1a2733, 0 10px 18px rgba(0,0,0,.15); margin-bottom:26px;
+  }
+  .tab-label{
+    background:#1a2733; color:#ffd54f; font-family:'ONEMobilePOP', sans-serif; font-size:16px;
+    padding:6px 16px; border-radius:20px; display:flex; align-items:center; gap:6px;
+  }
+  .top-controls{ display:flex; gap:8px; }
+  .icon-btn{
+    width:38px; height:38px; border-radius:10px; border:none; cursor:pointer;
+    background:#f5a623; color:#fff; font-size:16px; box-shadow:0 3px 0 #c9800f;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:active{ transform:translateY(3px); box-shadow:none; }
+  .icon-btn.home{ background:#7b61ff; box-shadow:0 3px 0 #5e35b1; }
+  .icon-btn.mute{ background:#4fc3d9; box-shadow:0 3px 0 #2f9db3; }
+
+  /* ---------- Content row ---------- */
+  .content-row{ display:flex; gap:16px; align-items:flex-start; width:100%; }
+  .main-column{ flex:1 1 auto; min-width:0; }
+
+  .toast{
+    position:absolute; left:50%; bottom:10px; transform:translate(-50%,10px);
+    background:#ff8a80; color:#fff; padding:7px 18px; border-radius:16px; font-size:14px; font-weight:bold;
+    opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; white-space:nowrap; z-index:6;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%,0); }
+
+  /* ---------- Passage panel ---------- */
+  .passage-panel{
+    position:relative; width:100%; background:#fffaf2; border:5px solid #e2d4c9; border-radius:24px;
+    box-shadow:8px 8px 0 #d5c6b9; overflow:hidden; margin-bottom:20px;
+  }
+  .passage-panel.shake{ animation:shake .28s ease; }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+  .passage-scroll{
+    max-height:calc(100vh - 230px); min-height:420px; overflow-y:auto; padding:30px 36px 36px; scrollbar-width:thin;
+  }
+  .line-row{ margin-bottom:24px; }
+  .line-target{
+    font-family:'Pretendard', sans-serif; font-size:26px; font-weight:700; letter-spacing:.3px;
+    line-height:1.6; color:#8d7a63; white-space:pre-wrap; word-break:break-all; padding:0 4px;
+    transition:color .2s;
+  }
+  .line-target.done{ color:#c3b8e0; }
+  .line-target.current{ color:#4f8f3d; }
+  .line-target.wrong{ color:#e57373; }
+  .line-box-wrap{ position:relative; }
+  .line-display{
+    position:absolute; left:0; top:0; right:0; pointer-events:none;
+    font-family:'Pretendard', sans-serif; font-size:26px; font-weight:700; letter-spacing:.3px;
+    padding:8px 4px; margin-top:4px; box-sizing:border-box; white-space:pre-wrap; word-break:break-all;
+  }
+  .line-display .ok{ color:#333; }
+  .line-display .bad{ color:#e53935; }
+  .line-box{
+    position:relative; display:block; width:100%; font-family:'Pretendard', sans-serif; font-size:26px; font-weight:700;
+    letter-spacing:.3px; padding:8px 4px; margin-top:4px; box-sizing:border-box;
+    border:none; border-bottom:3px solid #e2d4c9; outline:none; background:transparent;
+    color:#333; caret-color:#7b61ff; transition:border-color .2s;
+  }
+  .line-box:disabled{ border-bottom-color:transparent; color:#c3b8e0; }
+  .line-box:focus{ border-bottom-color:#7b61ff; }
+  .line-box.wrong:disabled{ color:#e53935; }
+  .line-box.live{ color:transparent; }
+
+  /* ---------- Side column ---------- */
+  .side-col{ flex:0 0 210px; width:210px; display:flex; flex-direction:column; gap:14px; }
+  .stats-box{
+    flex:0 0 auto; background:#fffaf2; border:5px solid #e2d4c9; border-radius:24px;
+    padding:18px 16px; box-shadow:8px 8px 0 #d5c6b9; display:flex; flex-direction:column;
+  }
+  .stat-row{ display:flex; align-items:center; gap:8px; margin-bottom:20px; flex:0 0 auto; }
+  .stat-row:last-child{ margin-bottom:0; }
+  .stat-row .label{ font-size:14px; font-weight:bold; color:#8d6e4b; width:40px; flex:0 0 auto; }
+  .bar-track{ flex:1; height:18px; background:#4a2f26; border-radius:10px; overflow:hidden; box-shadow:inset 0 2px 4px rgba(0,0,0,.3); }
+  .bar-fill{ height:100%; border-radius:10px; width:0%; transition:width .3s ease; }
+  .bar-fill.accuracy{ background:linear-gradient(90deg,#ffb74d,#ff7043); }
+  .stat-row .pct{ font-size:14px; color:#8d6e4b; font-weight:bold; width:36px; text-align:right; flex:0 0 auto; }
+  .speed-value{ font-size:24px; font-weight:900; color:#e91e63; }
+  .speed-unit{ font-size:13px; color:#8d6e4b; font-weight:bold; margin-left:4px; }
+
+  /* ---------- Complete overlay ---------- */
+  #final-popup{
+    display:none; position:fixed; top:0; left:0; width:100vw; height:100vh;
+    background:rgba(60,50,90,.45); z-index:2000; justify-content:center; align-items:center;
+  }
+  @keyframes cardPop{ 0%{ transform:scale(.7); opacity:0; } 70%{ transform:scale(1.05); opacity:1; } 100%{ transform:scale(1); } }
+  .final-card{
+    position:relative; width:min(92vw, 480px); background:#fffaf2; border-radius:36px;
+    border:6px solid #fff; box-shadow:0 24px 60px rgba(60,40,100,.35);
+    padding:46px 38px 36px; text-align:center; animation:cardPop .35s cubic-bezier(.34,1.56,.64,1);
+    overflow:hidden;
+  }
+  .final-card::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:13px;
+    background:linear-gradient(90deg,#ff8fa6,#ffd469,#a6d975,#7fd3ff,#c7a2ed);
+  }
+  .final-emoji{ font-size:68px; margin-bottom:14px; }
+  .final-msg{ font-size:30px; color:#5e35b1; font-weight:900; margin-bottom:8px; line-height:1.4; font-family:'ONEMobilePOP', sans-serif; }
+  .final-sub{ font-size:17px; color:#8d6e4b; font-weight:bold; margin-bottom:30px; }
+  .final-btn-group{ display:flex; flex-direction:column; gap:28px; }
+  .final-btn-row{ display:flex; gap:14px; }
+  .final-btn{
+    background-color:#7b61ff; color:#fff; padding:16px 24px; border-radius:34px; text-decoration:none;
+    font-size:18px; font-weight:bold; box-shadow:0 6px 0 #5e35b1; border:none; cursor:pointer; transition:.1s;
+    font-family:'ONEMobilePOP', sans-serif; flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .final-btn.next{ background-color:#ff8fa6; box-shadow:0 6px 0 #e85a7f; font-size:20px; padding:18px 24px; }
+  .final-btn.secondary{ background-color:#fff; color:#7b61ff; box-shadow:0 6px 0 #dcd6ff; border:2px solid #7b61ff; }
+  .final-btn:active{ transform:translateY(6px); box-shadow:none; }
+
+  .footer{ color:#7b61ff; margin-top:20px; text-align:center; }
+
+  @media (max-width:900px){
+    .main-title{ font-size:40px; }
+    .content-row{ flex-direction:column; }
+    .side-col{ width:100%; flex-direction:row; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars">
+  <div class="star" style="left:5%;top:10%;animation-delay:0s;"></div>
+  <div class="star" style="left:15%;top:60%;animation-delay:.3s;"></div>
+  <div class="star" style="left:22%;top:25%;animation-delay:.6s;"></div>
+  <div class="star" style="left:30%;top:80%;animation-delay:.9s;"></div>
+  <div class="star" style="left:38%;top:15%;animation-delay:1.2s;"></div>
+  <div class="star" style="left:45%;top:50%;animation-delay:1.5s;"></div>
+  <div class="star" style="left:52%;top:88%;animation-delay:1.8s;"></div>
+  <div class="star" style="left:60%;top:20%;animation-delay:2.1s;"></div>
+  <div class="star" style="left:68%;top:65%;animation-delay:2.4s;"></div>
+  <div class="star" style="left:75%;top:10%;animation-delay:.2s;"></div>
+  <div class="star" style="left:80%;top:45%;animation-delay:.5s;"></div>
+  <div class="star" style="left:88%;top:75%;animation-delay:.8s;"></div>
+  <div class="star" style="left:92%;top:25%;animation-delay:1.1s;"></div>
+  <div class="star" style="left:12%;top:90%;animation-delay:1.4s;"></div>
+  <div class="star" style="left:95%;top:55%;animation-delay:1.7s;"></div>
+</div>
+
+<!-- ============ Story Select ============ -->
+<div class="screen" id="screen-select">
+  <a href="index.html" class="home-btn"><i class="fa-solid fa-house"></i> 처음으로</a>
+  <div class="header-section">
+    <div class="main-title">🍬 마카롱 타자연습</div>
+    <div class="sub-desc">장문연습으로 긴 이야기를 따라 써봐요!</div>
+  </div>
+  <div class="story-grid" id="story-grid"></div>
+</div>
+
+<!-- ============ Game ============ -->
+<div class="screen" id="screen-game" hidden>
+  <div class="game-wrap">
+    <div class="top-bar">
+      <div class="tab-label"><i class="fa-solid fa-book"></i><span id="story-name-label">장문연습</span></div>
+      <div class="top-controls">
+        <button class="icon-btn mute" id="btn-mute" title="소리 켜기/끄기"><i class="fa-solid fa-volume-high" id="mute-icon"></i></button>
+        <button class="icon-btn home" id="btn-back" title="처음으로"><i class="fa-solid fa-house"></i></button>
+      </div>
+    </div>
+
+    <div class="content-row">
+      <div class="main-column">
+        <div class="passage-panel" id="passage-panel">
+          <div class="passage-scroll" id="passage-scroll"></div>
+          <div class="toast" id="toast"></div>
+        </div>
+      </div>
+
+      <div class="side-col">
+        <div class="stats-box">
+          <div class="stat-row">
+            <span class="label">정확도</span>
+            <div class="bar-track"><div class="bar-fill accuracy" id="accuracy-fill"></div></div>
+            <span class="pct" id="accuracy-pct">100%</span>
+          </div>
+          <div class="stat-row">
+            <span class="label">타수</span>
+            <span class="speed-value" id="speed-cpm">0</span><span class="speed-unit">타/분</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">제작 : 김정이 선생님 💕 | © 2026 Coding Playground</footer>
+  </div>
+</div>
+
+<!-- ============ Complete overlay ============ -->
+<div id="final-popup">
+  <div class="final-card">
+    <div class="final-emoji">🎉📖✨</div>
+    <div class="final-msg" id="final-msg">축하해요!</div>
+    <div class="final-sub" id="final-sub">정확도 100%로 완독했어요!</div>
+    <div class="final-btn-group">
+      <button class="final-btn next" id="btn-next-stage"><i class="fa-solid fa-forward"></i> 다음 이야기로</button>
+      <div class="final-btn-row">
+        <button class="final-btn secondary" id="btn-replay"><i class="fa-solid fa-rotate-right"></i> 다시하기</button>
+        <button class="final-btn secondary" id="btn-home"><i class="fa-solid fa-house"></i> 처음으로</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORIES = [
+    { id:1, unlocked:true, emoji:"🐢", title:"토끼와 거북이", desc:"느려도 꾸준하면 이겨요", lines:[
+      "깊은 숲속에 아주 빠른 토끼가 살고 있었어요.",
+      "토끼는 늘 자기가 세상에서 제일 빠르다고 뽐냈어요.",
+      "그러던 어느 날, 느릿느릿 걷는 거북이가 토끼 앞에 나타났어요.",
+      "\"토끼야, 나랑 달리기 시합 한번 해 보지 않을래?\"",
+      "토끼는 피식 웃으며 흔쾌히 그러자고 했어요.",
+      "\"탕!\" 소리와 함께 시합이 시작되자 토끼는 눈 깜짝할 사이에 저만치 앞서 나갔어요.",
+      "여유가 넘친 토끼는 커다란 나무 그늘 아래에 누워 스르르 잠이 들었어요.",
+      "그 사이 거북이는 쉬지 않고 한 걸음 한 걸음 꾸준히 나아갔어요.",
+      "한참 뒤 토끼가 눈을 떴을 때는 이미 해가 뉘엿뉘엿 저물고 있었어요.",
+      "깜짝 놀란 토끼가 서둘러 달려갔지만 거북이는 벌써 결승선을 지나 있었어요.",
+      "토끼는 자신의 게으름을 부끄러워하며 고개를 푹 숙였어요.",
+      "이날 이후로 숲속 동물들은 느려도 꾸준한 것이 가장 큰 힘이라는 것을 알게 되었답니다."
+    ]},
+    { id:2, unlocked:true, emoji:"🐭", title:"사자와 생쥐", desc:"작은 친절이 큰 힘이 돼요", lines:[
+      "넓은 초원에 힘세고 늠름한 사자가 살고 있었어요.",
+      "어느 포근한 오후, 사자가 나무 그늘 아래에서 낮잠을 자고 있었어요.",
+      "그때 작은 생쥐 한 마리가 사자의 등 위로 폴짝폴짝 뛰어다녔어요.",
+      "잠에서 깬 사자는 화가 나서 커다란 앞발로 생쥐를 꽉 붙잡았어요.",
+      "깜짝 놀란 생쥐가 떨리는 목소리로 말했어요. \"제발 살려 주세요! 언젠가 꼭 은혜를 갚을게요.\"",
+      "사자는 피식 웃음이 났지만, 착한 마음에 생쥐를 살며시 놓아주었어요.",
+      "며칠이 지난 뒤, 사자는 사냥꾼이 쳐 놓은 튼튼한 그물에 걸리고 말았어요.",
+      "아무리 몸부림쳐도 그물은 풀리지 않았고, 사자는 크게 포효했어요.",
+      "그 소리를 들은 작은 생쥐가 쪼르르 달려왔어요.",
+      "생쥐는 작은 이빨로 그물을 밤새 쉬지 않고 쓱쓱 갉았어요.",
+      "마침내 그물이 툭 끊어지고, 사자는 자유롭게 풀려났어요.",
+      "사자와 생쥐는 그날 이후로 아주 다정한 친구가 되었답니다."
+    ]},
+    { id:3, unlocked:true, emoji:"👠", title:"신데렐라", desc:"착한 마음이 행복을 가져와요", lines:[
+      "마음씨 착한 소녀 신데렐라가 계모, 언니들과 함께 살고 있었어요.",
+      "신데렐라는 매일 집안일을 도맡아 하면서도 웃음을 잃지 않았어요.",
+      "어느 날, 성에서 커다란 무도회가 열린다는 소식이 들려왔어요.",
+      "계모와 언니들은 화려한 드레스를 입고 신데렐라만 남겨둔 채 떠났어요.",
+      "홀로 남아 눈물짓는 신데렐라 앞에 요정 대모가 반짝이며 나타났어요.",
+      "\"슬퍼하지 마렴. 오늘 밤 너도 무도회에 갈 수 있단다.\" 요정 대모가 다정하게 말했어요.",
+      "요정 대모는 호박을 마차로, 생쥐를 말로 바꾸어 신데렐라를 무도회로 보내주었어요.",
+      "반짝이는 유리구두를 신은 신데렐라는 무도회에서 왕자님과 즐겁게 춤을 추었어요.",
+      "\"밤 열두 시가 되면 마법이 풀린단다.\" 요정 대모의 말에 신데렐라는 서둘러 성을 빠져나왔어요.",
+      "급히 뛰어가다 계단에 유리구두 한 짝을 떨어뜨리고 말았어요.",
+      "왕자는 그 구두의 주인을 찾아 온 나라를 돌아다닌 끝에 신데렐라를 만났어요.",
+      "신데렐라와 왕자는 서로를 알아보고 활짝 웃으며 오래오래 행복하게 살았답니다."
+    ]},
+    { id:4, no:1, lang:"en", unlocked:true, emoji:"🐇", title:"The Tortoise and the Rabbit", desc:"Slow and steady wins the race", lines:[
+      "Once upon a time, a rabbit lived in a green forest.",
+      "The rabbit always bragged that he was the fastest runner of all.",
+      "One day, a slow tortoise walked up to the rabbit.",
+      "\"Rabbit, would you like to race with me?\" asked the tortoise.",
+      "The rabbit laughed and happily agreed to the race.",
+      "When the race began, the rabbit dashed far ahead in no time.",
+      "Feeling proud, the rabbit lay down under a big shady tree and fell asleep.",
+      "Meanwhile, the tortoise kept walking slowly but never stopped.",
+      "By the time the rabbit woke up, the sun was already setting.",
+      "The rabbit ran as fast as he could, but the tortoise had already crossed the finish line.",
+      "The rabbit felt ashamed of his laziness and hung his head low.",
+      "From that day on, all the animals learned that slow and steady wins the race."
+    ]},
+    { id:5, no:2, lang:"en", unlocked:true, emoji:"🦁", title:"The Lion and the Mouse", desc:"A small kindness becomes great strength", lines:[
+      "In a wide grassland, there lived a strong and mighty lion.",
+      "One warm afternoon, the lion was taking a nap under a tree.",
+      "A tiny mouse hopped playfully across the lion's back.",
+      "The lion woke up angrily and grabbed the mouse with his huge paw.",
+      "\"Please spare me! I will repay your kindness one day,\" the mouse cried.",
+      "The lion chuckled, but his kind heart let the little mouse go free.",
+      "A few days later, the lion got caught in a hunter's strong net.",
+      "No matter how hard he struggled, the net would not come loose.",
+      "Hearing the lion's loud roar, the little mouse came running.",
+      "All night long, the mouse gnawed at the ropes with its small teeth.",
+      "At last the net broke apart, and the lion was finally free.",
+      "From that day on, the lion and the mouse became the very best of friends."
+    ]},
+    { id:6, no:3, lang:"en", unlocked:true, emoji:"👑", title:"Cinderella", desc:"A kind heart brings true happiness", lines:[
+      "A kind-hearted girl named Cinderella lived with her stepmother and stepsisters.",
+      "Every day, Cinderella did all the housework but never lost her smile.",
+      "One day, news arrived that a grand ball would be held at the castle.",
+      "Her stepmother and stepsisters wore fancy dresses and left without her.",
+      "As Cinderella cried alone, a fairy godmother suddenly appeared, sparkling bright.",
+      "\"Don't be sad. Tonight, you can go to the ball too,\" said the fairy godmother.",
+      "She turned a pumpkin into a carriage and mice into horses for Cinderella.",
+      "Wearing glass slippers, Cinderella danced happily with the prince at the ball.",
+      "\"The magic will end at midnight,\" the fairy godmother reminded her.",
+      "Cinderella rushed out of the castle in a hurry when the clock struck twelve.",
+      "While running down the stairs, she dropped one glass slipper behind.",
+      "The prince searched the whole kingdom and finally found Cinderella again.",
+      "Cinderella and the prince recognized each other and lived happily ever after."
+    ]}
+  ];
+
+  var elSelect = document.getElementById("screen-select");
+  var elGame = document.getElementById("screen-game");
+  var finalPopup = document.getElementById("final-popup");
+  var storyGrid = document.getElementById("story-grid");
+  var toastEl = document.getElementById("toast");
+  var panelEl = document.getElementById("passage-panel");
+  var scrollEl = document.getElementById("passage-scroll");
+  var accuracyFillEl = document.getElementById("accuracy-fill");
+  var accuracyPctEl = document.getElementById("accuracy-pct");
+  var speedCpmEl = document.getElementById("speed-cpm");
+  var storyNameLabel = document.getElementById("story-name-label");
+  var muteBtn = document.getElementById("btn-mute");
+
+  var current = null;
+  var lineIndex = 0;
+  var lineResults = [];
+  var lineTyped = [];
+  var attemptsCorrect = 0, attemptsWrong = 0;
+  var listening = false;
+  var muted = false;
+  var isComposing = false;
+  var stageStartTime = 0;
+  var keystrokeCount = 0;
+  var speedTimer = null;
+  var NON_TYPABLE_CODES = ["Escape","Tab","CapsLock","ShiftLeft","ShiftRight","ControlLeft","ControlRight",
+    "AltLeft","AltRight","MetaLeft","MetaRight","ContextMenu","Enter","NumpadEnter","Backspace","Delete",
+    "Insert","Home","End","PageUp","PageDown","ArrowUp","ArrowDown","ArrowLeft","ArrowRight","NumLock",
+    "ScrollLock","PrintScreen","Pause","HangulMode","Lang1","Lang2","Hanja"];
+  function isTypableCode(code){
+    if (!code || NON_TYPABLE_CODES.indexOf(code) !== -1) return false;
+    return !/^F\d+$/.test(code);
+  }
+
+  // ---- Audio (no external assets) ----
+  var actx = null;
+  function tone(freq, dur, type, vol){
+    if (muted) return;
+    try{
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      var osc = actx.createOscillator();
+      var gain = actx.createGain();
+      osc.type = type || "sine";
+      osc.frequency.value = freq;
+      gain.gain.value = vol || 0.15;
+      osc.connect(gain); gain.connect(actx.destination);
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+      osc.stop(actx.currentTime + dur);
+    }catch(e){ /* audio unavailable, ignore */ }
+  }
+  function playCorrect(){ tone(880,0.12,"sine",0.12); setTimeout(function(){tone(1180,0.15,"sine",0.12);},90); }
+  function playWrong(){ tone(220,0.18,"sine",0.1); }
+  function playFinish(){ tone(880,0.12,"sine",0.14); setTimeout(function(){tone(1180,0.14,"sine",0.14);},120); setTimeout(function(){tone(1480,0.2,"sine",0.14);},240); }
+
+  function currentBox(){ return document.getElementById("line-box-" + lineIndex); }
+  function focusCurrentBox(){ var b = currentBox(); if (b) b.focus(); }
+
+  var muteIcon = document.getElementById("mute-icon");
+  muteBtn.addEventListener("click", function(){
+    muted = !muted;
+    muteIcon.className = muted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
+    focusCurrentBox();
+  });
+
+  // ---- Story select rendering ----
+  function renderStoryGrid(){
+    storyGrid.innerHTML = "";
+    var row = null;
+    var lastLang = null;
+    STORIES.forEach(function(s){
+      if (s.lang !== lastLang){
+        var divider = document.createElement("div");
+        divider.className = "lang-divider";
+        divider.textContent = s.lang === "en" ? "🔤 영어 이야기" : "🍬 한글 이야기";
+        storyGrid.appendChild(divider);
+        row = document.createElement("div");
+        row.className = "story-row";
+        storyGrid.appendChild(row);
+        lastLang = s.lang;
+      }
+
+      var badgeText = s.unlocked
+        ? (s.lang === "en" ? "Story " + (s.no || s.id) : (s.no || s.id) + "번째 이야기")
+        : "곧 만나요!";
+      var card = document.createElement("div");
+      card.className = "story-card" + (s.unlocked ? "" : " locked");
+      card.innerHTML =
+        '<div class="story-badge">' + badgeText + '</div>' +
+        '<div class="story-icon">' + (s.unlocked ? s.emoji : '<i class="fa-solid fa-lock" style="color:#b3a8c9;"></i>') + '</div>' +
+        '<div class="story-title">' + s.title + '</div>' +
+        '<div class="story-desc">' + s.desc + '</div>';
+      if (s.unlocked){
+        card.addEventListener("click", function(){ startStory(s); });
+      }
+      row.appendChild(card);
+    });
+  }
+
+  // ---- Stats ----
+  function updateStats(){
+    var totalAttempts = attemptsCorrect + attemptsWrong;
+    var accuracyPct = totalAttempts > 0 ? Math.round((attemptsCorrect / totalAttempts) * 100) : 100;
+    accuracyFillEl.style.width = accuracyPct + "%";
+    accuracyPctEl.textContent = accuracyPct + "%";
+  }
+
+  function updateSpeedDisplay(){
+    var elapsedMin = (Date.now() - stageStartTime) / 60000;
+    var cpm = elapsedMin > (1 / 60) ? Math.round(keystrokeCount / elapsedMin) : 0;
+    speedCpmEl.textContent = cpm;
+  }
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ toastEl.classList.remove("show"); }, 900);
+  }
+
+  // ---- Passage rendering (one input box per line) ----
+  function renderPassage(){
+    scrollEl.innerHTML = "";
+    current.lines.forEach(function(line, idx){
+      var row = document.createElement("div");
+      row.className = "line-row";
+      row.id = "line-row-" + idx;
+
+      var target = document.createElement("div");
+      target.className = "line-target";
+      target.id = "line-target-" + idx;
+      target.textContent = line;
+
+      var boxWrap = document.createElement("div");
+      boxWrap.className = "line-box-wrap";
+
+      var display = document.createElement("div");
+      display.className = "line-display";
+      display.id = "line-display-" + idx;
+
+      var box = document.createElement("input");
+      box.type = "text";
+      box.className = "line-box";
+      box.id = "line-box-" + idx;
+      box.dataset.index = idx;
+      box.autocomplete = "off";
+      box.disabled = true;
+
+      boxWrap.appendChild(display);
+      boxWrap.appendChild(box);
+      row.appendChild(target);
+      row.appendChild(boxWrap);
+      scrollEl.appendChild(row);
+    });
+  }
+
+  function escapeHtml(s){
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function updateLiveDisplay(idx, val){
+    var target = current.lines[idx] || "";
+    var displayEl = document.getElementById("line-display-" + idx);
+    if (!displayEl) return;
+    var html = "";
+    for (var i = 0; i < val.length; i++){
+      var ch = val[i];
+      if (i === val.length - 1){
+        // the character currently being typed/composed isn't judged yet,
+        // so Hangul composition in progress doesn't flash red mid-syllable.
+        html += "<span>" + escapeHtml(ch) + "</span>";
+      } else {
+        var ok = ch === target[i];
+        html += '<span class="' + (ok ? "ok" : "bad") + '">' + escapeHtml(ch) + "</span>";
+      }
+    }
+    displayEl.innerHTML = html;
+  }
+
+  function refreshLineStates(){
+    current.lines.forEach(function(line, idx){
+      var targetEl = document.getElementById("line-target-" + idx);
+      var boxEl = document.getElementById("line-box-" + idx);
+      var displayEl = document.getElementById("line-display-" + idx);
+      if (!targetEl || !boxEl) return;
+      if (displayEl) displayEl.innerHTML = "";
+      if (idx < lineIndex){
+        var isWrong = lineResults[idx] === "wrong";
+        targetEl.className = "line-target done" + (isWrong ? " wrong" : "");
+        boxEl.className = "line-box" + (isWrong ? " wrong" : "");
+        boxEl.disabled = true;
+        boxEl.value = isWrong ? lineTyped[idx] : line;
+      } else if (idx === lineIndex){
+        targetEl.className = "line-target current";
+        boxEl.className = "line-box live";
+        boxEl.disabled = false;
+        boxEl.value = "";
+      } else {
+        targetEl.className = "line-target";
+        boxEl.className = "line-box";
+        boxEl.disabled = true;
+        boxEl.value = "";
+      }
+    });
+    var curRow = document.getElementById("line-row-" + lineIndex);
+    if (curRow) curRow.scrollIntoView({ block: "center", behavior: "smooth" });
+    focusCurrentBox();
+  }
+
+  // ---- Game flow ----
+  function startStory(story){
+    current = story;
+    lineIndex = 0;
+    lineResults = [];
+    lineTyped = [];
+    attemptsCorrect = 0; attemptsWrong = 0;
+    storyNameLabel.textContent = story.title;
+
+    renderPassage();
+    updateStats();
+    refreshLineStates();
+
+    stageStartTime = Date.now();
+    keystrokeCount = 0;
+    updateSpeedDisplay();
+    clearInterval(speedTimer);
+    speedTimer = setInterval(updateSpeedDisplay, 500);
+
+    elSelect.hidden = true;
+    finalPopup.style.display = "none";
+    elGame.hidden = false;
+    listening = true;
+  }
+
+  function advanceLine(){
+    lineIndex++;
+    updateStats();
+
+    if (lineIndex >= current.lines.length){
+      listening = false;
+      refreshLineStates();
+      playFinish();
+      setTimeout(finishStory, 500);
+    } else {
+      refreshLineStates();
+    }
+  }
+
+  function onCorrect(val){
+    playCorrect();
+    attemptsCorrect++;
+    lineResults[lineIndex] = "correct";
+    lineTyped[lineIndex] = val;
+    advanceLine();
+  }
+
+  function onWrong(val){
+    playWrong();
+    attemptsWrong++;
+    showToast("아쉬워요! 다음 줄로 넘어갈게요 😅");
+    panelEl.classList.remove("shake"); void panelEl.offsetWidth; panelEl.classList.add("shake");
+    lineResults[lineIndex] = "wrong";
+    lineTyped[lineIndex] = val;
+    advanceLine();
+  }
+
+  function checkInput(val){
+    if (!listening || !current) return;
+    var target = current.lines[lineIndex];
+    if (!target) return;
+    if (val.length < target.length) return;
+    if (val === target){ onCorrect(val); }
+    else { onWrong(val); }
+  }
+
+  scrollEl.addEventListener("compositionstart", function(e){
+    if (!e.target.classList.contains("line-box")) return;
+    isComposing = true;
+  });
+  scrollEl.addEventListener("compositionend", function(e){
+    if (!e.target.classList.contains("line-box")) return;
+    isComposing = false;
+    updateLiveDisplay(Number(e.target.dataset.index), e.target.value);
+    checkInput(e.target.value);
+  });
+  scrollEl.addEventListener("input", function(e){
+    if (!e.target.classList.contains("line-box")) return;
+    var idx = Number(e.target.dataset.index);
+    updateLiveDisplay(idx, e.target.value);
+    if (isComposing) return;
+    if (e.target.value !== "" && e.target.value.trim() === ""){
+      e.target.value = "";
+      updateLiveDisplay(idx, "");
+      return;
+    }
+    checkInput(e.target.value);
+  });
+
+  function finishStory(){
+    clearInterval(speedTimer);
+    updateSpeedDisplay();
+    document.getElementById("final-msg").textContent = current.title + " 완독!";
+    document.getElementById("final-sub").textContent = "정확도 " + accuracyPctEl.textContent + "로 완독했어요!";
+
+    var nextStory = STORIES.find(function(s){ return s.id === current.id + 1 && s.unlocked && s.lang === current.lang; });
+    var nextBtn = document.getElementById("btn-next-stage");
+    nextBtn.hidden = !nextStory;
+    nextBtn.onclick = nextStory ? function(){ startStory(nextStory); } : null;
+
+    finalPopup.style.display = "flex";
+  }
+
+  function exitToSelect(){
+    listening = false;
+    clearInterval(speedTimer);
+    elGame.hidden = true;
+    finalPopup.style.display = "none";
+    elSelect.hidden = false;
+  }
+
+  document.getElementById("btn-back").addEventListener("click", exitToSelect);
+  document.getElementById("btn-home").addEventListener("click", exitToSelect);
+  document.getElementById("btn-replay").addEventListener("click", function(){
+    startStory(STORIES.find(function(s){ return s.id === current.id; }));
+  });
+
+  document.addEventListener("keydown", function(event){
+    if (event.code === "Tab") event.preventDefault();
+    if (listening && isTypableCode(event.code)) keystrokeCount++;
+  });
+
+  document.addEventListener("click", function(e){
+    if (elGame.hidden || !listening) return;
+    if (e.target.classList && e.target.classList.contains("line-box")) return;
+    focusCurrentBox();
+  });
+
+  renderStoryGrid();
+})();
+</script>
+</body>
+</html>

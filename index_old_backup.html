@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마카롱 타자연습</title>
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  body{
+    background: linear-gradient(135deg, #cfe4ff 0%, #ded4f6 30%, #f3d7ec 65%, #fbe6da 100%);
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    min-height:100vh; margin:0; padding:40px 0 60px; font-family:sans-serif;
+    box-sizing:border-box; background-repeat:no-repeat; background-attachment:fixed;
+    position:relative; overflow-x:hidden;
+  }
+  *{box-sizing:border-box;}
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background-image:
+      radial-gradient(ellipse 240px 100px at 8% 12%, rgba(255,255,255,.6), transparent 70%),
+      radial-gradient(ellipse 280px 110px at 88% 8%, rgba(255,255,255,.55), transparent 70%),
+      radial-gradient(ellipse 220px 90px at 78% 88%, rgba(255,255,255,.5), transparent 70%),
+      radial-gradient(ellipse 260px 100px at 12% 90%, rgba(255,255,255,.45), transparent 70%),
+      radial-gradient(ellipse 200px 80px at 50% 4%, rgba(255,255,255,.4), transparent 70%);
+    filter: blur(4px);
+  }
+  .stars{ position:fixed; inset:0; z-index:-1; pointer-events:none; }
+  .star{ position:absolute; width:3px; height:3px; background:#fff; border-radius:50%; box-shadow:0 0 6px 2px rgba(255,255,255,.8); animation:twinkle 1.8s ease-in-out infinite; }
+  @keyframes twinkle{
+    0%,100%{ opacity:.15; transform:scale(.6); box-shadow:0 0 4px 1px rgba(255,255,255,.4); }
+    50%{ opacity:1; transform:scale(1.7); box-shadow:0 0 16px 5px rgba(255,255,255,1); }
+  }
+  .header-section{ text-align:center; margin-bottom:10px; }
+  .main-title{ font-family:'ONEMobilePOP', sans-serif; font-size:60px; color:#5e35b1; text-shadow:2px 2px 0 #fff; margin-bottom:22px; }
+  .sub-desc{ font-size:18px; background:#fff; padding:10px 24px; border-radius:30px; color:#5e35b1; display:inline-block; box-shadow:0 4px 10px rgba(0,0,0,.06); font-weight:bold; margin-bottom:36px; }
+
+  .menu-grid{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; max-width:1000px; padding:10px; }
+  .menu-card{
+    flex:0 0 auto; width:210px; height:260px; background:#fff; border-radius:50px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-shadow:0 10px 30px rgba(91,58,138,.15); text-decoration:none; transition:.3s;
+    position:relative; border:3px solid #e5deff; cursor:pointer;
+  }
+  .menu-card:hover{ transform:translateY(-8px); background:#faf8ff; box-shadow:0 20px 40px rgba(91,58,138,.3); border-color:#5b3a8a; }
+  .menu-card.locked{ cursor:default; opacity:.55; }
+  .menu-card.locked:hover{ transform:none; box-shadow:0 10px 30px rgba(91,58,138,.15); border-color:#e5deff; }
+  .menu-badge{ position:absolute; top:18px; background:#f3edff; color:#5b3a8a; padding:5px 14px; border-radius:20px; font-size:14px; font-weight:bold; }
+  .menu-icon{ margin-top:16px; margin-bottom:10px; color:#7bab5e; }
+  .menu-icon.g1{ font-size:38px; }
+  .menu-icon.g2{ font-size:48px; }
+  .menu-icon.g3{ font-size:58px; }
+  .menu-icon.g4{ font-size:64px; color:#e8a33d; }
+  .menu-card.locked .menu-icon{ color:#b3a8c9; }
+  .menu-title{ font-size:23px; color:#5b3a8a; font-family:'ONEMobilePOP', sans-serif; }
+  .menu-desc{ font-size:13px; color:#9c8fc7; margin-top:4px; }
+
+  .footer{ color:#7b61ff; margin-top:40px; text-align:center; font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="stars">
+  <div class="star" style="left:5%;top:10%;animation-delay:0s;"></div>
+  <div class="star" style="left:15%;top:60%;animation-delay:.3s;"></div>
+  <div class="star" style="left:22%;top:25%;animation-delay:.6s;"></div>
+  <div class="star" style="left:30%;top:80%;animation-delay:.9s;"></div>
+  <div class="star" style="left:38%;top:15%;animation-delay:1.2s;"></div>
+  <div class="star" style="left:45%;top:50%;animation-delay:1.5s;"></div>
+  <div class="star" style="left:52%;top:88%;animation-delay:1.8s;"></div>
+  <div class="star" style="left:60%;top:20%;animation-delay:2.1s;"></div>
+  <div class="star" style="left:68%;top:65%;animation-delay:2.4s;"></div>
+  <div class="star" style="left:75%;top:10%;animation-delay:.2s;"></div>
+  <div class="star" style="left:80%;top:45%;animation-delay:.5s;"></div>
+  <div class="star" style="left:88%;top:75%;animation-delay:.8s;"></div>
+  <div class="star" style="left:92%;top:25%;animation-delay:1.1s;"></div>
+  <div class="star" style="left:12%;top:90%;animation-delay:1.4s;"></div>
+  <div class="star" style="left:95%;top:55%;animation-delay:1.7s;"></div>
+</div>
+
+<div class="header-section">
+  <div class="main-title">🍬 마카롱 타자연습</div>
+  <div class="sub-desc">자리연습부터 장문연습까지, 순서대로 배워봐요!</div>
+</div>
+
+<div class="menu-grid">
+  <a class="menu-card" href="position.html">
+    <div class="menu-badge">1단계</div>
+    <div class="menu-icon g1"><i class="fa-solid fa-seedling"></i></div>
+    <div class="menu-title">자리연습</div>
+    <div class="menu-desc">손가락 자리 익히기</div>
+  </a>
+  <a class="menu-card" href="word.html">
+    <div class="menu-badge">2단계</div>
+    <div class="menu-icon g2"><i class="fa-solid fa-spa"></i></div>
+    <div class="menu-title">낱말연습</div>
+    <div class="menu-desc">실제 단어 타이핑</div>
+  </a>
+  <a class="menu-card" href="sentence.html">
+    <div class="menu-badge">3단계</div>
+    <div class="menu-icon g3"><i class="fa-solid fa-tree"></i></div>
+    <div class="menu-title">단문연습</div>
+    <div class="menu-desc">짧은 문장 타이핑</div>
+  </a>
+  <a class="menu-card" href="long.html">
+    <div class="menu-badge">4단계</div>
+    <div class="menu-icon g4"><i class="fa-solid fa-trophy"></i></div>
+    <div class="menu-title">장문연습</div>
+    <div class="menu-desc">긴 글 타이핑</div>
+  </a>
+</div>
+
+<footer class="footer">제작 : 김정이 선생님 💕 | © 2026 Coding Playground</footer>
+
+</body>
+</html>

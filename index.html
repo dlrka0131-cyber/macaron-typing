@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>마카롱 타자연습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Dongle:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* 노을(sunset) 팔레트 - 기존 보라색 브랜드감 유지 */
+    --color-sky-top: #5B3A8A;
+    --color-sky-mid: #C9648F;
+    --color-sky-horizon: #FFCFA6;
+    --color-ground-top: #D6C371;
+    --color-ground: #8CA05C;
+    --color-cloud: #FFFFFF;
+    --color-star: #FFD873;
+    --color-star-shine: #FFF3CE;
+    --color-accent: #C9648F;
+    --color-accent-deep: #7A4394;
+    --color-surface: #FFFDF8;
+    --color-text-on-sky: #FFFFFF;
+    --color-text-on-surface: #5B3A8A;
+    --color-text-muted: #B29BC9;
+    --color-border: #F3DDEE;
+    --color-shadow: rgba(122, 67, 148, 0.25);
+    --macaron-1: #F49AC1;
+    --macaron-2: #B79CE8;
+    --macaron-cream: #FFE39B;
+    --badge-position: #FFD9E8;
+    --badge-position-deep: #D1568F;
+    --badge-word: #E7DFFF;
+    --badge-word-deep: #8A6BEA;
+    --badge-sentence: #FFE3CC;
+    --badge-sentence-deep: #E0904A;
+    --badge-long: #FFF3B8;
+    --badge-long-deep: #D9A82E;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--color-sky-horizon);
+    font-family: 'Dongle', sans-serif;
+    color: var(--color-text-on-surface);
+    overflow: hidden;
+  }
+
+  .page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    flex: 0 0 52vh;
+    height: 52vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .sky {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, var(--color-sky-top) 0%, var(--color-sky-mid) 55%, var(--color-sky-horizon) 100%);
+  }
+  .sky::after {
+    content: "";
+    position: absolute;
+    top: -8%;
+    right: -8%;
+    width: 55%;
+    height: 65%;
+    background: radial-gradient(circle, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 68%);
+    pointer-events: none;
+  }
+
+  .star {
+    position: absolute;
+    width: var(--size, 6px);
+    height: var(--size, 6px);
+    background: var(--color-star);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    animation: twinkle var(--dur, 3s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+
+  .cloud {
+    position: absolute;
+    background: var(--color-cloud);
+    border-radius: 999px;
+    opacity: 0.9;
+    filter: drop-shadow(0 6px 8px rgba(122, 67, 148, 0.15));
+  }
+  .cloud::before, .cloud::after {
+    content: "";
+    position: absolute;
+    background: var(--color-cloud);
+    border-radius: 999px;
+  }
+  .cloud-1 { top: 12%; left: -12%; width: 130px; height: 42px; animation: drift 70s linear infinite; }
+  .cloud-1::before { width: 64px; height: 64px; top: -30px; left: 16px; }
+  .cloud-1::after { width: 48px; height: 48px; top: -18px; left: 70px; }
+  .cloud-2 { top: 22%; left: -12%; width: 96px; height: 34px; animation: drift 95s linear infinite; animation-delay: -30s; }
+  .cloud-2::before { width: 48px; height: 48px; top: -20px; left: 10px; }
+  .cloud-2::after { width: 38px; height: 38px; top: -14px; left: 50px; }
+  .cloud-3 { top: 5%; left: -12%; width: 74px; height: 28px; animation: drift 60s linear infinite; animation-delay: -15s; }
+  .cloud-3::before { width: 36px; height: 36px; top: -16px; left: 8px; }
+  .cloud-3::after { width: 30px; height: 30px; top: -10px; left: 38px; }
+
+  /* 마카롱 마스코트 (별 자리에 대체) */
+  .mascot {
+    position: absolute;
+    top: 30%;
+    right: 8%;
+    width: 92px;
+    height: 92px;
+    animation: mascotBob 4.5s ease-in-out infinite;
+  }
+  .mascot-body {
+    width: 100%;
+    height: 84%;
+    margin-top: 8%;
+    background: linear-gradient(180deg, var(--macaron-1) 0%, var(--macaron-1) 44%, var(--macaron-cream) 44%, var(--macaron-cream) 56%, var(--macaron-2) 56%, var(--macaron-2) 100%);
+    border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,0.75);
+    position: relative;
+    filter: drop-shadow(0 10px 16px rgba(122, 67, 148, 0.35));
+  }
+  .mascot-shine { position: absolute; top: 14%; left: 22%; width: 20%; height: 14%; background: #fff; border-radius: 50%; opacity: 0.7; }
+  .mascot-face { position: absolute; top: 46%; left: 50%; transform: translate(-50%, -50%); width: 38px; height: 24px; }
+  .mascot-cheek { position: absolute; top: 4px; width: 9px; height: 6px; background: #F2568F; border-radius: 50%; opacity: 0.5; }
+  .mascot-cheek.left { left: -6px; }
+  .mascot-cheek.right { right: -6px; }
+  .mascot-eye { position: absolute; top: 0; width: 6px; height: 6px; border-radius: 50%; background: #4A2E63; }
+  .mascot-eye.left { left: 10px; }
+  .mascot-eye.right { right: 10px; }
+  .mascot-smile { position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 16px; height: 8px; border: 2.5px solid #4A2E63; border-top: none; border-radius: 0 0 14px 14px; }
+  .sparkle { position: absolute; background: #FFFFFF; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); animation: twinkle 2.2s ease-in-out infinite; }
+  .mascot .sparkle.s1 { width: 12px; height: 12px; top: -14px; left: -16px; animation-delay: 0.3s; }
+  .mascot .sparkle.s2 { width: 8px; height: 8px; bottom: -6px; right: -14px; animation-delay: 1s; }
+
+  .hills { position: absolute; left: 0; right: 0; bottom: -2px; z-index: 2; line-height: 0; }
+  .hill { display: block; width: 100%; height: 11vh; }
+  .hill-near { fill: url(#hillGradient); }
+
+  /* 나무 대신 작은 마카롱 장식 */
+  .macaron-deco {
+    position: absolute;
+    z-index: 2;
+    width: 30px;
+    height: 22px;
+    border-radius: 50%;
+    filter: drop-shadow(0 4px 6px rgba(122,67,148,.18));
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    padding: 0 24px;
+    max-width: 90vw;
+    margin: 6vh auto 0;
+  }
+  .eyebrow {
+    font-family: 'Dongle', sans-serif;
+    font-weight: 700;
+    font-size: clamp(17px, 3.2vh, 25px);
+    color: var(--color-text-on-sky);
+    background: rgba(255,255,255,0.22);
+    display: inline-block;
+    padding: 5px 22px;
+    border-radius: 999px;
+    margin: 0 0 12px;
+  }
+  h1 {
+    font-family: 'Baloo 2', 'Dongle', sans-serif;
+    font-weight: 800;
+    font-size: clamp(44px, 12vh, 128px);
+    color: #FFFFFF;
+    margin: 0 0 16px;
+    text-wrap: balance;
+    letter-spacing: 1px;
+    line-height: 1.05;
+    text-shadow:
+      -3px -3px 0 var(--color-accent-deep),
+       3px -3px 0 var(--color-accent-deep),
+      -3px  3px 0 var(--color-accent-deep),
+       3px  3px 0 var(--color-accent-deep),
+       0 12px 24px rgba(31, 22, 55, 0.35);
+  }
+  .tagline {
+    font-family: 'Dongle', sans-serif;
+    font-weight: 700;
+    font-size: clamp(19px, 3.6vh, 30px);
+    color: var(--color-text-on-sky);
+    margin: 0;
+    text-shadow: 0 2px 6px rgba(31, 22, 55, 0.3);
+  }
+
+  /* ---------- QUESTS ---------- */
+  .quests {
+    background: var(--color-ground);
+    padding: 0.4vh 24px;
+    margin-top: -2px;
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .quest-grid {
+    width: 100%;
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: clamp(10px, 2.2vh, 28px) clamp(14px, 2.2vw, 28px);
+  }
+  .quest-card {
+    position: relative;
+    z-index: 1;
+    background: var(--color-surface);
+    border: 3px solid var(--color-border);
+    border-radius: 32px;
+    padding: clamp(18px, 4.4vh, 44px) 16px clamp(16px, 3.4vh, 36px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 12px 12px var(--color-shadow);
+    transform: translateY(0);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .quest-card:hover, .quest-card:focus-visible {
+    z-index: 20;
+    transform: translateY(-4px);
+    background: var(--badge);
+    box-shadow: 0 18px 18px var(--color-shadow);
+    border-color: var(--badge-deep);
+    outline: none;
+  }
+  .quest-badge {
+    width: clamp(54px, 11.5vh, 104px);
+    height: clamp(54px, 11.5vh, 104px);
+    border-radius: 50%;
+    background: var(--badge);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(28px, 5.6vh, 50px);
+    margin-bottom: clamp(8px, 1.8vh, 20px);
+    transition: background-color 0.25s ease;
+  }
+  .quest-card:hover .quest-badge, .quest-card:focus-visible .quest-badge {
+    background: #FFFFFF;
+  }
+  .quest-card h2 {
+    font-family: 'Dongle', sans-serif;
+    font-weight: 700;
+    font-size: clamp(25px, 5.4vh, 44px);
+    color: var(--color-text-on-surface);
+    margin: 0 0 2px;
+    transition: color 0.25s ease;
+  }
+  .quest-card p {
+    font-family: 'Dongle', sans-serif;
+    font-size: clamp(17px, 3.6vh, 26px);
+    color: var(--color-text-muted);
+    margin: 0;
+    transition: color 0.25s ease;
+  }
+  .quest-card:hover h2, .quest-card:focus-visible h2 {
+    color: var(--color-text-on-surface);
+  }
+  .quest-card:hover p, .quest-card:focus-visible p {
+    color: var(--color-text-on-surface);
+    opacity: 0.75;
+  }
+
+  footer {
+    background: var(--color-ground);
+    text-align: center;
+    flex: 0 0 auto;
+    padding: clamp(8px, 1.4vh, 14px) 24px clamp(10px, 2vh, 22px);
+    font-family: 'Dongle', sans-serif;
+    font-weight: 700;
+    font-size: clamp(17px, 2.8vh, 24px);
+    color: var(--color-text-on-surface);
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.25; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+  @keyframes drift {
+    from { transform: translateX(0); }
+    to { transform: translateX(140vw); }
+  }
+  @keyframes mascotBob {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-12px) rotate(4deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .star, .cloud, .mascot, .sparkle { animation: none !important; }
+  }
+
+  @media (max-width: 640px) {
+    .macaron-deco { display: none; }
+    .mascot { top: 22%; right: 8%; width: 66px; height: 66px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="hero">
+    <div class="sky">
+      <span class="star" style="top:8%; left:8%; --size:8px; --dur:3.2s; --delay:0s;"></span>
+      <span class="star" style="top:16%; left:22%; --size:5px; --dur:2.6s; --delay:0.6s;"></span>
+      <span class="star" style="top:6%; left:38%; --size:6px; --dur:3.6s; --delay:1.1s;"></span>
+      <span class="star" style="top:24%; left:48%; --size:5px; --dur:2.8s; --delay:0.3s;"></span>
+      <span class="star" style="top:12%; left:62%; --size:7px; --dur:3.1s; --delay:0.9s;"></span>
+      <span class="star" style="top:30%; left:78%; --size:5px; --dur:2.4s; --delay:1.4s;"></span>
+      <span class="star" style="top:5%; left:88%; --size:6px; --dur:3.4s; --delay:0.2s;"></span>
+      <span class="star" style="top:28%; left:4%; --size:5px; --dur:2.9s; --delay:1.6s;"></span>
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+      <div class="mascot" aria-hidden="true">
+        <span class="sparkle s1"></span>
+        <span class="sparkle s2"></span>
+        <div class="mascot-body">
+          <div class="mascot-shine"></div>
+          <div class="mascot-face">
+            <span class="mascot-cheek left"></span>
+            <span class="mascot-cheek right"></span>
+            <span class="mascot-eye left"></span>
+            <span class="mascot-eye right"></span>
+            <span class="mascot-smile"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hills">
+      <svg class="hill hill-near" viewBox="0 0 1440 220" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="hillGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#D6C371"></stop>
+            <stop offset="55%" stop-color="#A6B468"></stop>
+            <stop offset="100%" stop-color="#8CA05C"></stop>
+          </linearGradient>
+        </defs>
+        <path d="M0,120 C180,80 300,150 480,120 C660,90 800,150 960,120 C1140,90 1260,140 1440,110 L1440,220 L0,220 Z"></path>
+      </svg>
+    </div>
+
+    <div class="macaron-deco" style="left:9%; bottom:36px; background:linear-gradient(180deg,var(--macaron-1) 46%, #fff 46%, #fff 54%, var(--macaron-2) 54%);"></div>
+    <div class="macaron-deco" style="left:88%; bottom:30px; transform:scale(0.8); background:linear-gradient(180deg,var(--macaron-2) 46%, #fff 46%, #fff 54%, var(--macaron-1) 54%);"></div>
+    <div class="macaron-deco" style="left:20%; bottom:20px; transform:scale(0.6); background:linear-gradient(180deg,#FFE3CC 46%, #fff 46%, #fff 54%, #FFD9E8 54%);"></div>
+
+    <div class="hero-content">
+      <p class="eyebrow">김정이 선생님과 함께, 사르르 녹는 타자시간</p>
+      <h1>MACARON TYPING</h1>
+      <p class="tagline">손가락은 또각또각! 이야기는 사르르! 달콤한 타자연습, 출발!</p>
+    </div>
+  </section>
+
+  <section class="quests">
+    <div class="quest-grid">
+      <a href="position.html" class="quest-card" style="--badge: var(--badge-position); --badge-deep: var(--badge-position-deep)">
+        <div class="quest-badge">🌱</div>
+        <h2>자리연습</h2>
+        <p>손가락 자리 익히기</p>
+      </a>
+      <a href="word.html" class="quest-card" style="--badge: var(--badge-word); --badge-deep: var(--badge-word-deep)">
+        <div class="quest-badge">🌸</div>
+        <h2>낱말연습</h2>
+        <p>실제 단어 타이핑</p>
+      </a>
+      <a href="sentence.html" class="quest-card" style="--badge: var(--badge-sentence); --badge-deep: var(--badge-sentence-deep)">
+        <div class="quest-badge">🌳</div>
+        <h2>단문연습</h2>
+        <p>짧은 문장 타이핑</p>
+      </a>
+      <a href="long.html" class="quest-card" style="--badge: var(--badge-long); --badge-deep: var(--badge-long-deep)">
+        <div class="quest-badge">🏆</div>
+        <h2>장문연습</h2>
+        <p>긴 글 타이핑</p>
+      </a>
+    </div>
+  </section>
+
+  <footer>제작 : 김정이 선생님 💕 | © 2026 Macaron Typing</footer>
+</div>
+</body>
+</html>
