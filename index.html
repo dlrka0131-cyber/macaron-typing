@@ -406,5 +406,58 @@
 
   <footer>제작 : 김정이 선생님 💕 | © 2026 Macaron Typing</footer>
 </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- Card click sound: sparkle arpeggio (no external assets) ----
+  var actx = null;
+  function ctx(){
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    return actx;
+  }
+
+  function playSparkle(){
+    var c = ctx();
+    var t = c.currentTime;
+    var notes = [1567.98, 1975.53, 2637.02];
+    notes.forEach(function(freq, i){
+      var start = t + i * 0.055;
+      var osc = c.createOscillator();
+      var gain = c.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.12, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
+      osc.connect(gain); gain.connect(c.destination);
+      osc.start(start); osc.stop(start + 0.24);
+    });
+  }
+
+  document.querySelectorAll(".quest-card").forEach(function(card){
+    card.addEventListener("click", function(e){
+      e.preventDefault();
+      playSparkle();
+      var href = card.getAttribute("href");
+      setTimeout(function(){ window.location.href = href; }, 180);
+    });
+  });
+})();
+</script>
+    <script>
+        // ⭐️ F12(개발자 도구) 및 관련 단축키 비활성화 - 학생들이 실수로 눌러서 화면이 이상해지는 것 방지용
+        document.addEventListener('keydown', function (e) {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) ||
+                (e.ctrlKey && (e.key === 'U' || e.key === 'u'))
+            ) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>

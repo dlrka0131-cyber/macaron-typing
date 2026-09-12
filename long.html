@@ -698,5 +698,17 @@
   renderStoryGrid();
 })();
 </script>
+    <script>
+        // ⭐️ F12(개발자 도구) 및 관련 단축키 비활성화 - 학생들이 실수로 눌러서 화면이 이상해지는 것 방지용
+        document.addEventListener('keydown', function (e) {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) ||
+                (e.ctrlKey && (e.key === 'U' || e.key === 'u'))
+            ) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>
