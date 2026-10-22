@@ -162,6 +162,12 @@
     border-radius:16px; padding:6px 14px; font-size:15px; font-weight:bold; color:#8d6e4b;
   }
   .next-word b{ color:#5e35b1; font-size:20px; margin-left:4px; }
+  .scene.mode-sentence .creature-slot{ width:100%; }
+  .scene.mode-sentence .creature-slot.current .creature-svg{ width:90px; height:90px; }
+  .scene.mode-sentence .orb{
+    white-space:normal; height:auto; min-height:70px; max-width:min(92%, 1100px);
+    font-size:30px; padding:14px 30px; line-height:1.35; text-align:center;
+  }
   .scene.shake{ animation:shake .28s ease; }
   @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
   .toast{
@@ -186,6 +192,7 @@
     border:4px solid #7b61ff; border-radius:26px; outline:none; background:#fffaf2; color:#333;
     font-weight:700; font-family:'Pretendard', sans-serif; letter-spacing:2px;
   }
+  #word-input.mode-sentence{ max-width:1000px; font-size:26px; letter-spacing:0; }
   #word-input:focus{ border-color:#ff9800; box-shadow:0 0 15px rgba(255,152,0,.4); }
   .guide-msg{
     position:absolute; left:50%; top:50%; transform:translate(calc(210px + 18px), -50%);
@@ -330,7 +337,7 @@
       <button class="big-btn" id="btn-start"><i class="fa-solid fa-flag-checkered"></i> 대회 시작!</button>
       <div class="warn" id="lobby-warn"></div>
       <ul class="rules">
-        <li><i class="fa-solid fa-list-ol"></i> 모두 똑같은 낱말 20개를 순서대로 쳐요.</li>
+        <li><i class="fa-solid fa-list-ol"></i> <span id="rule-count">모두 똑같은 낱말 20개를 순서대로 쳐요.</span></li>
         <li><i class="fa-solid fa-bullseye"></i> 정확도 100%로 가장 빨리 끝낸 친구가 1등!</li>
         <li><i class="fa-solid fa-rotate-right"></i> 몇 번이든 다시 도전할 수 있어요. 가장 좋은 기록만 남아요.</li>
       </ul>
@@ -393,7 +400,7 @@
             <div class="bar-track"><div class="bar-fill" id="accuracy-fill"></div></div>
             <span class="pct" id="accuracy-pct">100%</span>
           </div>
-          <div class="stage-pips-label"><i class="fa-solid fa-star"></i> 낱말 <span id="word-count">0/20</span></div>
+          <div class="stage-pips-label"><i class="fa-solid fa-star"></i> <span id="unit-label">낱말</span> <span id="word-count">0/20</span></div>
           <div class="pips-row" id="pips-row"></div>
         </div>
       </div>
@@ -463,15 +470,17 @@
 
       <div class="t-label" style="margin-top:26px; border-top:2px dashed #e2d4c9; padding-top:20px;">새 대회 열기 · 대회 이름</div>
       <input type="text" class="t-input" id="t-name" maxlength="30" placeholder="예: 행복초등학교 5학년 타자대회">
-      <div class="t-label">낱말 단계 (여러 개 고를 수 있어요)</div>
+      <div class="t-label">대회 종류</div>
+      <div class="stage-checks" id="t-types"></div>
+      <div class="t-label">단계 (여러 개 고를 수 있어요)</div>
       <div class="stage-checks" id="t-stages"></div>
-      <div class="t-label">대회 낱말 20개 미리보기</div>
+      <div class="t-label" id="t-preview-label">대회 낱말 20개 미리보기</div>
       <div class="word-chips" id="t-words"></div>
       <div class="t-row">
         <button class="t-btn plain" id="t-shuffle"><i class="fa-solid fa-shuffle"></i> 낱말 다시 섞기</button>
         <button class="t-btn primary" id="t-open"><i class="fa-solid fa-flag"></i> 이 낱말로 새 대회 열기</button>
       </div>
-      <div class="t-note">새 대회를 열면 지금 순위표는 지워지고 모든 학생이 위 낱말 20개를 이 순서대로 쳐요.</div>
+      <div class="t-note">새 대회를 열면 지금 순위표는 지워지고 모든 학생이 위 미리보기 그대로 같은 순서로 쳐요.</div>
     </div>
   </div>
 </div>
@@ -484,7 +493,6 @@
 (function(){
   "use strict";
 
-  var WORD_COUNT = 20;
 
   // ---- 한글 낱말 (word.html 1~4단계와 같은 목록) ----
   var DOUBLE_OF = {"ㅂ":"ㅃ","ㅈ":"ㅉ","ㄷ":"ㄸ","ㄱ":"ㄲ","ㅅ":"ㅆ"};
@@ -518,6 +526,107 @@
     { id:3, name:"아랫자리까지", words:STAGE3_WORDS },
     { id:4, name:"쌍자음 낱말", words:STAGE4_WORDS }
   ];
+  // 단문 (sentence.html 한글 1~4단계와 같은 목록)
+  var SENT1 = [
+    "나는 학교에 간다.",
+    "오늘은 날씨가 좋다.",
+    "고양이가 낮잠을 잔다.",
+    "우리는 친구 사이다.",
+    "저기 나비가 날아간다.",
+    "엄마가 나를 부른다.",
+    "아빠는 요리를 한다.",
+    "나비야 이리 오너라.",
+    "하늘이 아주 파랗다.",
+    "동생이 나를 웃긴다.",
+    "나는 매일 이를 닦는다.",
+    "나는 매일 우유를 마신다.",
+    "나는 밥을 먹는다.",
+    "강아지가 멍멍 짖는다.",
+    "오빠는 축구를 한다.",
+    "나는 인형을 좋아한다.",
+    "언니가 노래를 부른다.",
+    "우리는 매일 웃는다.",
+    "토끼가 깡충깡충 뛴다.",
+    "나는 그림을 그린다."
+  ];
+  var SENT2 = [
+    "오늘 급식이 꿀처럼 달콤하고 맛있었어요.",
+    "짝꿍이랑 알록달록 예쁜 그림을 그렸어요.",
+    "신나는 체육 시간이 오늘 하루 중 제일 좋았어요.",
+    "선생님이 따뜻하게 칭찬해 주셔서 마음이 몽글몽글했어요.",
+    "쉬는 시간에 친구랑 신나게 술래잡기를 했어요.",
+    "숙제를 모두 끝내고 나니 마음이 가볍고 홀가분해요.",
+    "상쾌한 아침 공기를 마시며 학교에 갔어요.",
+    "친구와 도란도란 이야기하며 급식 줄을 섰어요.",
+    "미술 시간에 알록달록 색종이로 예쁜 종이접기를 했어요.",
+    "집에 돌아가 엄마 품에서 오늘 있었던 일을 조잘조잘 이야기했어요.",
+    "도와줘서 정말 고맙고 마음이 따뜻해져요.",
+    "작은 친절에도 활짝 웃으며 고맙다고 말해요.",
+    "실수했을 때는 용기를 내어 솔직하게 사과해요.",
+    "미안한 마음을 꾹꾹 눌러 담아 진심으로 전해요.",
+    "칭찬을 받으면 마음이 두둥실 기분이 좋아져요.",
+    "서로에게 따뜻하고 힘이 되는 말을 건네요.",
+    "오늘도 씩씩하고 힘차게 하루를 시작해요.",
+    "힘들어도 포기하지 않고 끝까지 노력해요.",
+    "작은 성공에도 스스로를 토닥이며 칭찬해요."
+  ];
+  var SENT3 = [
+    "오늘 기분이 알록달록 어때?",
+    "우와, 눈이 반짝반짝 정말 신기하다!",
+    "우리 같이 신나게 놀이터 갈래?",
+    "조심해, 발밑이 미끄러워 넘어질 수도 있어!",
+    "이 책 진짜진짜 재미있지?",
+    "정말정말 대단하구나!",
+    "잠깐만, 손잡고 같이 가자!",
+    "혹시 무슨 일이 있었니?",
+    "와, 눈이 소복소복 정말 많이 온다!",
+    "우리 다음엔 언제 또 만날까?",
+    "우아, 나비가 팔랑팔랑 날아간다!",
+    "이따가 우리 집에 놀러 올래?",
+    "얘들아, 같이 딱지치기 하자!",
+    "이거 진짜 맛있어 보이는데, 나도 줄래?",
+    "앗, 정말 깜짝 놀랐잖아!",
+    "오늘따라 하늘이 유난히 예쁘지?",
+    "조심조심, 계단에서 뛰면 안 돼!",
+    "우리 오늘 뭐 하고 놀까?",
+    "우와, 무지개가 정말 예쁘다!",
+    "넌 커서 뭐가 되고 싶니?"
+  ];
+  var SENT4 = [
+    "한 번의 실패가 성공으로 가는 소중한 밑거름이 된다.",
+    "오늘 할 수 있는 일을 절대 내일로 미루지 마라.",
+    "꿈은 클수록 더 멀리 나아갈 힘을 준다.",
+    "끝까지 포기하지 않는 사람에게 실패란 없다.",
+    "다시 오지 않을 지금 이 순간을 소중히 여겨라.",
+    "작은 노력이 쌓이고 쌓여 큰 결과를 만들어 낸다.",
+    "좋은 책 한 권은 마음을 살찌우는 최고의 양식이다.",
+    "다시 되돌릴 수 없는 시간은 금보다 더 귀하다.",
+    "실패를 두려워하지 말고 네 꿈을 위해 도전하라.",
+    "꾸준한 노력은 절대 너를 배신하지 않는다.",
+    "어제보다 오늘 더 나은 사람이 되기 위해 노력하자.",
+    "실수를 두려워하기보다 실수에서 배우는 것이 더 중요하다.",
+    "친절한 말 한마디가 누군가의 하루를 환하게 밝혀 준다.",
+    "스스로를 믿는 마음이 무엇이든 해낼 수 있는 힘이 된다.",
+    "작은 습관 하나가 모여 큰 변화를 만들어 낸다.",
+    "힘든 순간을 견뎌 낸 사람만이 진짜 성장을 이룬다.",
+    "남과 비교하지 말고 어제의 나보다 더 나아지자.",
+    "배움에는 늦은 때가 없으니 언제든 다시 시작하면 된다.",
+    "진심을 다한 노력은 언젠가 반드시 빛을 발한다.",
+    "웃음은 가장 어두운 순간에도 희망을 비추는 빛이 된다."
+  ];
+  var SENTENCE_STAGES = [
+    { id:1, name:"쉬운 문장", words:SENT1 },
+    { id:2, name:"일상 문장", words:SENT2 },
+    { id:3, name:"문장부호 문장", words:SENT3 },
+    { id:4, name:"전체 도전", words:SENT4 }
+  ];
+  // 대회 종류: 낱말 20개 / 문장 10개 (단문연습 한 판과 같은 개수)
+  var TYPES = {
+    word:     { label:"낱말", unit:"낱말", count:20, stages:STAGES },
+    sentence: { label:"단문", unit:"문장", count:10, stages:SENTENCE_STAGES }
+  };
+  function contestType(c){ return (c && c.type === "sentence") ? "sentence" : "word"; }
+
   var DECO = ["🏅","⭐","🌟","✨","🎉","🍬","🧁","🍭","💖","🎈"];
 
   function normalizeWord(item){
@@ -528,21 +637,21 @@
     for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
     return a;
   }
-  // 고른 단계의 낱말을 섞어서 20개. 낱말이 20개보다 적으면 다시 섞어서 이어 붙이되 같은 낱말이 연달아 나오지 않게
-  function makeWordList(stageIds){
-    var seen = {}, pool = [];
-    STAGES.forEach(function(s){
+  // 고른 단계의 낱말(문장)을 섞어서 정해진 개수만큼. 모자라면 다시 섞어서 이어 붙이되 같은 것이 연달아 나오지 않게
+  function makeList(type, stageIds){
+    var seen = {}, pool = [], count = TYPES[type].count;
+    TYPES[type].stages.forEach(function(s){
       if (stageIds.indexOf(s.id) === -1) return;
       s.words.map(normalizeWord).forEach(function(w){ if (!seen[w.w]){ seen[w.w] = true; pool.push(w); } });
     });
     if (!pool.length) return [];
     var out = [];
-    while (out.length < WORD_COUNT){
+    while (out.length < count){
       var batch = shuffle(pool);
       if (out.length && pool.length > 1 && batch[0].w === out[out.length - 1].w){ batch.push(batch.shift()); }
       out = out.concat(batch);
     }
-    return out.slice(0, WORD_COUNT);
+    return out.slice(0, count);
   }
 
   // 한글 낱말을 칠 때 누르는 키 수 (타수 계산용). 겹모음/겹받침은 2타
@@ -628,10 +737,12 @@
 
   function fmtSec(ms){ return (ms / 1000).toFixed(2); }
   function stageText(c){
+    var t = TYPES[contestType(c)];
     var ids = c.stages.slice().sort();
-    if (ids.length === STAGES.length) return "한글 전체 단계";
-    return "한글 " + ids.join("·") + "단계";
+    if (ids.length === t.stages.length) return "한글 " + t.label + " 전체 단계";
+    return "한글 " + t.label + " " + ids.join("·") + "단계";
   }
+  function countText(c){ return TYPES[contestType(c)].unit + " " + c.words.length + "개"; }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(ch){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]; }); }
 
   // ---- 요소 ----
@@ -650,6 +761,7 @@
   var startTime = 0, timerId = null, countdownTimers = [];
   var lastSavedAt = 0;
   var runContestId = null;
+  var mode = "word";
 
   // ---- 소리 ----
   var actx = null;
@@ -711,15 +823,16 @@
     var c = Store.getContest();
     var st = Store.status();
     $("lobby-cname").textContent = c ? c.name : st === "loading" ? "불러오는 중..." : "대회 준비 중";
-    $("lobby-cinfo").textContent = c ? stageText(c) + " · 낱말 " + c.words.length + "개"
+    $("lobby-cinfo").textContent = c ? stageText(c) + " · " + countText(c)
       : st === "error" ? "대회 정보를 불러오지 못했어요. 인터넷 연결을 확인해 주세요" : "선생님이 대회를 열면 시작할 수 있어요";
     $("btn-start").disabled = !c;
+    $("rule-count").textContent = "모두 똑같은 " + (c ? countText(c) : "낱말 20개") + "를 순서대로 쳐요.";
     $("lobby-rank").innerHTML = rankRows(ranking(), 10, false);
   }
   function renderBoard(){
     var c = Store.getContest();
     $("board-cname").textContent = c ? c.name : "";
-    $("board-cinfo").textContent = c ? stageText(c) + " · 낱말 " + c.words.length + "개 · 참가 " + ranking().length + "명" : "";
+    $("board-cinfo").textContent = c ? stageText(c) + " · " + countText(c) + " · 참가 " + ranking().length + "명" : "";
     $("board-rank").innerHTML = rankRows(ranking(), 30, true);
   }
   Store.subscribe(function(){
@@ -756,7 +869,7 @@
     queueEl.innerHTML = '<div class="creature-slot current">' + creatureSVG(f.shell, f.cream)
       + '<div class="orb">' + escapeHtml(w.w) + '</div></div>';
     var next = words[wordIdx + 1];
-    $("next-word").hidden = !next;
+    $("next-word").hidden = !next || mode === "sentence";
     $("next-word-text").textContent = next ? next.w : "";
     if (w.hint){ guideMsgEl.textContent = w.hint; guideMsgEl.style.visibility = "visible"; }
     else { guideMsgEl.textContent = ""; guideMsgEl.style.visibility = "hidden"; }
@@ -811,6 +924,10 @@
     if (!c){ show(elLobby); return; }
     stopTimers();
     runContestId = c.id;
+    mode = contestType(c);
+    sceneEl.classList.toggle("mode-sentence", mode === "sentence");
+    wordInput.classList.toggle("mode-sentence", mode === "sentence");
+    $("unit-label").textContent = TYPES[mode].unit;
     words = c.words.map(normalizeWord);
     wordIdx = 0; attemptsCorrect = 0; attemptsWrong = 0;
     listening = false;
@@ -879,7 +996,12 @@
 
   function checkInput(val){
     if (!listening) return;
-    val = val.replace(/\s+/g, "");
+    if (mode === "sentence"){
+      // 단문은 띄어쓰기까지 정답에 포함 (단문연습과 같은 방식)
+      if (val !== "" && val.trim() === ""){ wordInput.value = ""; return; }
+    } else {
+      val = val.replace(/\s+/g, "");
+    }
     var target = words[wordIdx].w;
     if (val.length < target.length) return;
     if (val === target){ onCorrect(); }
@@ -948,6 +1070,7 @@
   $("res-lobby").addEventListener("click", function(){ resultPopup.classList.remove("show"); show(elLobby); });
 
   // ---- 선생님 설정 ----
+  var draftType = "word";
   var draftStages = [1];
   var draftWords = [];
 
@@ -959,9 +1082,25 @@
   }
   function renderTeacher(){
     $("t-current").innerHTML = currentText();
+    var typeBox = $("t-types");
+    typeBox.innerHTML = "";
+    Object.keys(TYPES).forEach(function(key){
+      var t = TYPES[key], on = key === draftType;
+      var lab = document.createElement("label");
+      lab.className = "stage-check" + (on ? " on" : "");
+      lab.innerHTML = '<input type="radio" name="t-type"' + (on ? " checked" : "") + '> ' + t.label + " 대회 (" + t.unit + " " + t.count + "개)";
+      lab.querySelector("input").addEventListener("change", function(){
+        draftType = key;
+        draftStages = [1];
+        draftWords = makeList(draftType, draftStages);
+        renderTeacher();
+      });
+      typeBox.appendChild(lab);
+    });
+    $("t-preview-label").textContent = "대회 " + TYPES[draftType].unit + " " + TYPES[draftType].count + "개 미리보기";
     var box = $("t-stages");
     box.innerHTML = "";
-    STAGES.forEach(function(s){
+    TYPES[draftType].stages.forEach(function(s){
       var on = draftStages.indexOf(s.id) !== -1;
       var lab = document.createElement("label");
       lab.className = "stage-check" + (on ? " on" : "");
@@ -969,7 +1108,7 @@
       lab.querySelector("input").addEventListener("change", function(e){
         if (e.target.checked) draftStages.push(s.id);
         else draftStages = draftStages.filter(function(x){ return x !== s.id; });
-        draftWords = makeWordList(draftStages);
+        draftWords = makeList(draftType, draftStages);
         renderTeacher();
       });
       box.appendChild(lab);
@@ -995,8 +1134,9 @@
   }
   function afterUnlock(){
     var c = Store.getContest();
+    draftType = contestType(c);
     draftStages = c ? c.stages.slice() : [1];
-    draftWords = makeWordList(draftStages);
+    draftWords = makeList(draftType, draftStages);
     $("t-name").value = "";
     $("t-lock").hidden = true; $("t-panel").hidden = false;
     renderTeacher();
@@ -1006,7 +1146,7 @@
   $("t-user").addEventListener("keydown", function(e){ if (e.key === "Enter" && !e.isComposing) $("t-pin").focus(); });
   function closeTeacher(){ teacherPopup.classList.remove("show"); $("t-pin").value = ""; Store.signOut(); }
   $("t-close").addEventListener("click", closeTeacher);
-  $("t-shuffle").addEventListener("click", function(){ draftWords = makeWordList(draftStages); renderTeacher(); });
+  $("t-shuffle").addEventListener("click", function(){ draftWords = makeList(draftType, draftStages); renderTeacher(); });
   $("t-reset").addEventListener("click", function(){
     if (!confirm("지금 대회의 순위표를 모두 지울까요? 낱말은 그대로예요.")) return;
     Store.clearRecords().then(renderTeacher).catch(function(){ alert("초기화에 실패했어요. 다시 로그인해 주세요."); });
@@ -1015,7 +1155,7 @@
     var name = $("t-name").value.trim();
     if (!name){ alert("대회 이름을 입력해 주세요. (예: 행복초등학교 5학년 타자대회)"); $("t-name").focus(); return; }
     if (!confirm("'" + name + "'을(를) 새로 열까요?\n지금 순위표는 지워져요.")) return;
-    Store.openContest({ id:"c" + Date.now(), name:name, stages:draftStages.slice().sort(), words:draftWords.map(function(w){ return w.hint ? w : w.w; }) })
+    Store.openContest({ id:"c" + Date.now(), type:draftType, name:name, stages:draftStages.slice().sort(), words:draftWords.map(function(w){ return w.hint ? w : w.w; }) })
       .then(function(){ closeTeacher(); show(elLobby); })
       .catch(function(){ alert("대회를 열지 못했어요. 다시 로그인해 주세요."); });
   });
@@ -1024,7 +1164,8 @@
   renderKeyboard('keyboard-mount');
   document.addEventListener('keydown', function(event){
     if (elGame.hidden) return;
-    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Tab','Space','Enter'].indexOf(event.code) !== -1 || event.code.match(/^F\d+$/)) {
+    var blocked = mode === "sentence" ? ['ArrowUp','ArrowDown','Tab'] : ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Tab','Space','Enter'];
+    if (blocked.indexOf(event.code) !== -1 || event.code.match(/^F\d+$/)) {
       event.preventDefault();
     }
     var k = keyEl(getExactKeyCode(event));
