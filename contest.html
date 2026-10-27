@@ -87,6 +87,13 @@
   .rank-item.top2{ background:#f3f4f7; border-color:#cfd5de; }
   .rank-item.top3{ background:#fdeee4; border-color:#f0c2a4; }
   .rank-item.me{ outline:3px solid #7b61ff; }
+  .rank-item.rest{ background:#f4f1fa; border-style:dashed; border-color:#cfc6e6; opacity:.85; }
+  .rank-item .rest-tag{ font-size:13px; color:#7b61ff; background:#fff; border:1px solid #cfc6e6; border-radius:10px; padding:2px 8px; white-space:nowrap; }
+  .link-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .hall-list{ display:flex; flex-direction:column; gap:18px; }
+  .hall-card{ background:#fffaf2; border:4px solid #e2d4c9; border-radius:26px; box-shadow:6px 6px 0 #d5c6b9; padding:18px 22px; }
+  .hall-card .hc-title{ font-family:'ONEMobilePOP', sans-serif; font-size:22px; color:#5e35b1; }
+  .hall-card .hc-date{ font-size:14px; color:#a99a8c; font-weight:bold; margin:2px 0 12px; }
   .rank-empty{ text-align:center; color:#a99a8c; font-weight:bold; padding:30px 0; }
   .link-btn{
     margin-top:16px; align-self:center; background:#fff; color:#7b61ff; border:2px solid #7b61ff; border-radius:24px;
@@ -345,13 +352,17 @@
         <li><i class="fa-solid fa-list-ol"></i> <span id="rule-count">모두 똑같은 낱말 20개를 순서대로 쳐요.</span></li>
         <li><i class="fa-solid fa-bullseye"></i> 정확도 100%로 가장 빨리 끝낸 친구가 1등!</li>
         <li><i class="fa-solid fa-rotate-right"></i> 몇 번이든 다시 도전할 수 있어요. 가장 좋은 기록만 남아요.</li>
+        <li id="rule-rest" hidden><i class="fa-solid fa-moon"></i> 지난 대회 메달 친구들은 이번엔 쉬어가기예요. 대회에는 나오고, 메달 순위만 쉬어요.</li>
       </ul>
     </div>
 
     <div class="panel">
       <div class="panel-title"><i class="fa-solid fa-ranking-star"></i> 순위표 TOP 10</div>
       <div class="rank-list" id="lobby-rank"></div>
-      <button class="link-btn" id="btn-board"><i class="fa-solid fa-expand"></i> 순위표 크게 보기</button>
+      <div class="link-row">
+        <button class="link-btn" id="btn-board"><i class="fa-solid fa-expand"></i> 순위표 크게 보기</button>
+        <button class="link-btn" id="btn-hall"><i class="fa-solid fa-crown"></i> 명예의 전당</button>
+      </div>
     </div>
   </div>
   <footer class="footer">제작 : 김정이 선생님 💕 | © 2026 Coding Playground</footer>
@@ -429,6 +440,16 @@
   </div>
 </div>
 
+<!-- ============ Hall of fame ============ -->
+<div class="screen" id="screen-hall" hidden>
+  <button class="home-btn" id="btn-hall-back"><i class="fa-solid fa-arrow-left"></i> 돌아가기</button>
+  <div class="header-section">
+    <div class="main-title">👑 명예의 전당</div>
+    <div class="contest-banner"><div class="cinfo">대회마다 금·은·동 친구들이 올라가요. 올라간 친구는 다음 대회에서 한 번 쉬어가요!</div></div>
+  </div>
+  <div class="board"><div class="hall-list" id="hall-list"></div></div>
+</div>
+
 <!-- ============ Result popup ============ -->
 <div class="overlay" id="result-popup">
   <div class="final-card">
@@ -476,6 +497,11 @@
           <button class="t-btn danger" id="t-reset"><i class="fa-solid fa-eraser"></i> 순위표만 초기화</button>
           <button class="t-btn danger" id="t-delete"><i class="fa-solid fa-trash-can"></i> 대회 삭제</button>
         </div>
+        <div class="t-row">
+          <button class="t-btn primary" id="t-hall"><i class="fa-solid fa-crown"></i> 오늘 우승자를 명예의 전당에 올리기</button>
+          <button class="t-btn plain" id="t-hall-undo"><i class="fa-solid fa-rotate-left"></i> 마지막 등록 취소</button>
+        </div>
+        <div class="t-note">명예의 전당에 올린 뒤 <b>새 대회</b>를 열면, 올라간 금·은·동 친구는 그 대회에서만 메달 순위에서 쉬어가요. (기록은 남아요)</div>
         <div class="t-note">순위표만 초기화: 같은 낱말로 처음부터 다시 겨룰 때 써요. (예: 같은 학교 다른 반)<br>대회 삭제: 대회가 없어지고 학생 화면은 '대회 준비 중'으로 돌아가요.</div>
       </div>
 
@@ -698,12 +724,15 @@
     var recordsCol = db.collection("typingRecords");
     auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
 
-    var contest = null, records = [], status = "loading";
+    var contest = null, records = [], status = "loading", hall = [];
     var listeners = [], stopRecords = null;
     function emit(){ listeners.forEach(function(fn){ fn(); }); }
 
+    // current 문서에는 명예의 전당(hall)도 같이 들어 있음. id가 없으면 열린 대회가 없는 것
     contestRef.onSnapshot(function(snap){
-      var c = snap.exists ? snap.data() : null;
+      var raw = snap.exists ? snap.data() : null;
+      hall = (raw && raw.hall) || [];
+      var c = raw && raw.id ? raw : null;
       var changed = (c && c.id) !== (contest && contest.id);
       contest = c;
       status = "ready";
@@ -722,11 +751,19 @@
       status: function(){ return status; },
       getContest: function(){ return contest; },
       getRecords: function(){ return records; },
-      openContest: function(c){ return contestRef.set(c); },
+      getHall: function(){ return hall; },
+      // 방금 끝난 대회의 메달 친구들만 새 대회에서 쉬어감 (명예의 전당에 올리지 않았으면 쉬는 친구 없음)
+      openContest: function(c){
+        var last = hall[hall.length - 1];
+        var rest = (contest && last && last.contestId === contest.id) ? last.medals.map(function(m){ return m.key; }) : [];
+        return contestRef.set(Object.assign({}, c, { hall: hall, restNames: rest }));
+      },
+      addHall: function(entry){ return contestRef.update({ hall: hall.concat([entry]) }); },
+      undoHall: function(){ return contestRef.update({ hall: hall.slice(0, -1) }); },
       addRecord: function(r){ return recordsCol.add(r); },
       clearRecords: function(){ return contestRef.update({ id: "c" + Date.now() }); },
       setOpen: function(open){ return contestRef.update({ open: open }); },
-      deleteContest: function(){ return contestRef.delete(); },
+      deleteContest: function(){ return hall.length ? contestRef.set({ hall: hall }) : contestRef.delete(); },
       // 거북이 코딩과 같은 방식: 이름을 가짜 이메일로 바꿔서 로그인
       signIn: function(name, pw){
         return auth.signInWithEmailAndPassword(name.trim().toLowerCase().replace(/\s+/g, "_") + "@turtle-coding.local", pw);
@@ -738,6 +775,8 @@
 
   // 순위: 정확도 100% 기록만, 이름별 최고 기록 1개, 시간이 짧은 순 (같으면 먼저 세운 기록이 위)
   // extra: 방금 끝낸 기록 (서버에서 돌아오기 전에 등수를 바로 보여 주려고)
+  // 쉬어가기(rest) 친구는 목록에는 남기되 등수·메달은 건너뜀
+  function nkey(name){ return String(name).replace(/\s+/g, "").toLowerCase(); }
   function ranking(extra){
     var best = {};
     Store.getRecords().concat(extra ? [extra] : []).forEach(function(r){
@@ -745,7 +784,8 @@
       var b = best[r.name];
       if (!b || r.timeMs < b.timeMs || (r.timeMs === b.timeMs && r.at < b.at)) best[r.name] = r;
     });
-    return Object.keys(best).map(function(k){ return best[k]; })
+    var c = Store.getContest(), rest = (c && c.restNames) || [];
+    return Object.keys(best).map(function(k){ best[k].rest = rest.indexOf(nkey(k)) !== -1; return best[k]; })
       .sort(function(a, b){ return a.timeMs - b.timeMs || a.at - b.at; });
   }
 
@@ -761,7 +801,7 @@
 
   // ---- 요소 ----
   var $ = function(id){ return document.getElementById(id); };
-  var elLobby = $("screen-lobby"), elGame = $("screen-game"), elBoard = $("screen-board");
+  var elLobby = $("screen-lobby"), elGame = $("screen-game"), elBoard = $("screen-board"), elHall = $("screen-hall");
   var nameInput = $("name-input"), wordInput = $("word-input");
   var resultPopup = $("result-popup"), teacherPopup = $("teacher-popup");
   var sceneEl = $("scene"), queueEl = $("creature-queue"), flowerFieldEl = $("flower-field");
@@ -823,14 +863,33 @@
   // ---- 순위표 그리기 ----
   function rankRows(list, limit, big){
     if (!list.length) return '<div class="rank-empty">아직 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';
-    return list.slice(0, limit).map(function(r, i){
+    var n = 0;
+    return list.slice(0, limit).map(function(r){
+      var me = r.name === playerName ? " me" : "";
+      var tail = (big ? '<span class="cpm">' + r.cpm + '타</span>' : '') + '<span class="tm">' + fmtSec(r.timeMs) + '초</span></div>';
+      if (r.rest){
+        return '<div class="rank-item rest' + me + '"><span class="rk">🌙</span>'
+          + '<span class="nm">' + escapeHtml(r.name) + '</span><span class="rest-tag">쉬어가기</span>' + tail;
+      }
+      var i = n++;
       var medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1);
-      var cls = "rank-item" + (i < 3 ? " top" + (i + 1) : "") + (r.name === playerName ? " me" : "");
-      return '<div class="' + cls + '"><span class="rk">' + medal + '</span>'
-        + '<span class="nm">' + escapeHtml(r.name) + '</span>'
-        + (big ? '<span class="cpm">' + r.cpm + '타</span>' : '')
-        + '<span class="tm">' + fmtSec(r.timeMs) + '초</span></div>';
+      return '<div class="rank-item' + (i < 3 ? " top" + (i + 1) : "") + me + '"><span class="rk">' + medal + '</span>'
+        + '<span class="nm">' + escapeHtml(r.name) + '</span>' + tail;
     }).join("");
+  }
+
+  var MEDAL_ICON = { gold:"🥇", silver:"🥈", bronze:"🥉" };
+  function renderHall(){
+    var hall = Store.getHall().slice().reverse();
+    $("hall-list").innerHTML = hall.length ? hall.map(function(h){
+      var d = new Date(h.at);
+      return '<div class="hall-card"><div class="hc-title">' + escapeHtml(h.contestName) + '</div>'
+        + '<div class="hc-date">' + d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate() + '</div>'
+        + '<div class="rank-list">' + h.medals.map(function(m, i){
+          return '<div class="rank-item top' + (i + 1) + '"><span class="rk">' + MEDAL_ICON[m.medal] + '</span>'
+            + '<span class="nm">' + escapeHtml(m.name) + '</span><span class="tm">' + fmtSec(m.timeMs) + '초</span></div>';
+        }).join("") + '</div></div>';
+    }).join("") : '<div class="rank-empty">아직 올라간 친구가 없어요. 첫 번째 주인공을 기다려요!</div>';
   }
 
   function renderLobby(){
@@ -843,6 +902,7 @@
     if (c && c.open && $("lobby-warn").dataset.closed){ $("lobby-warn").textContent = ""; delete $("lobby-warn").dataset.closed; }
     $("rule-count").textContent = "모두 똑같은 " + (c ? countText(c) : "낱말 20개") + "를 순서대로 쳐요.";
     $("lobby-rank").innerHTML = rankRows(ranking(), 10, false);
+    $("rule-rest").hidden = !(c && c.restNames && c.restNames.length);
   }
   function renderBoard(){
     var c = Store.getContest();
@@ -854,12 +914,14 @@
     if (teacherPopup.classList.contains("show") && !$("t-panel").hidden) renderTeacherCurrent();
     if (!elLobby.hidden) renderLobby();
     if (!elBoard.hidden) renderBoard();
+    if (!elHall.hidden) renderHall();
   });
 
   function show(screen){
-    [elLobby, elGame, elBoard].forEach(function(el){ el.hidden = el !== screen; });
+    [elLobby, elGame, elBoard, elHall].forEach(function(el){ el.hidden = el !== screen; });
     if (screen === elLobby) renderLobby();
     if (screen === elBoard) renderBoard();
+    if (screen === elHall) renderHall();
   }
 
   // ---- 로비 ----
@@ -877,6 +939,8 @@
   nameInput.addEventListener("keydown", function(e){ if (e.key === "Enter" && !e.isComposing) tryStart(); });
   $("btn-board").addEventListener("click", function(){ show(elBoard); });
   $("btn-board-back").addEventListener("click", function(){ show(elLobby); });
+  $("btn-hall").addEventListener("click", function(){ show(elHall); });
+  $("btn-hall-back").addEventListener("click", function(){ show(elLobby); });
 
   // ---- 게임 ----
   function renderCurrent(){
@@ -1069,13 +1133,20 @@
 
     if (acc === 100){
       var list = ranking(contestChanged ? null : rec);
-      var rank = list.findIndex(function(r){ return r.name === playerName; }) + 1;
+      var me = list.filter(function(r){ return r.name === playerName; })[0];
+      var ranked = list.filter(function(r){ return !r.rest; });
+      var rank = ranked.findIndex(function(r){ return r.name === playerName; }) + 1;
       var isNewBest = !prevBest || timeMs < prevBest.timeMs;
       $("res-emoji").textContent = rank === 1 ? "🥇🎉" : rank <= 3 ? "🏅✨" : "🎉🍬";
       $("res-msg").textContent = isNewBest ? (prevBest ? "최고 기록 경신!" : "완주 성공!") : "완주 성공!";
       $("res-sub").innerHTML = isNewBest
-        ? "지금 <b>" + rank + "등</b>이에요! (" + list.length + "명 중)"
+        ? "지금 <b>" + rank + "등</b>이에요! (" + ranked.length + "명 중)"
         : "내 최고 기록은 <b>" + fmtSec(prevBest.timeMs) + "초</b>, 지금 <b>" + rank + "등</b>이에요.<br>조금만 더 빨리!";
+      if (me && me.rest){
+        $("res-emoji").textContent = "🌙✨";
+        $("res-msg").textContent = "명예 선수 완주!";
+        $("res-sub").innerHTML = "지난 대회 메달 친구라 이번엔 <b>쉬어가기</b>예요.<br>기록은 순위표에 남고, 메달은 다른 친구들에게 양보해요 💜";
+      }
       if (contestChanged) $("res-sub").innerHTML = c
         ? "선생님이 대회를 새로 열어서 이번 기록은 순위에 들어가지 않아요.<br>새 대회로 다시 도전해요!"
         : "선생님이 대회를 끝내서 이번 기록은 순위에 들어가지 않아요.";
@@ -1183,9 +1254,36 @@
     if (!confirm("지금 대회의 순위표를 모두 지울까요? 낱말은 그대로예요.")) return;
     Store.clearRecords().then(renderTeacher).catch(function(){ alert("초기화에 실패했어요. 다시 로그인해 주세요."); });
   });
+  $("t-hall").addEventListener("click", function(){
+    var c = Store.getContest();
+    if (!c) return;
+    var hall = Store.getHall();
+    if (hall.some(function(h){ return h.contestId === c.id; })){ alert("이 대회는 이미 명예의 전당에 올렸어요. 잘못 올렸다면 '마지막 등록 취소'를 눌러 주세요."); return; }
+    var top = ranking().filter(function(r){ return !r.rest; }).slice(0, 3);
+    if (!top.length){ alert("순위에 오른 친구가 아직 없어요."); return; }
+    var icons = ["🥇", "🥈", "🥉"];
+    if (!confirm("명예의 전당에 올릴까요?\n\n" + top.map(function(r, i){ return icons[i] + " " + r.name + " (" + fmtSec(r.timeMs) + "초)"; }).join("\n")
+      + "\n\n이 친구들은 다음 새 대회에서 메달 순위에서 쉬어가요.")) return;
+    var kinds = ["gold", "silver", "bronze"];
+    Store.addHall({
+      contestId:c.id, contestName:c.name, at:Date.now(),
+      medals: top.map(function(r, i){ return { medal:kinds[i], name:r.name, key:nkey(r.name), timeMs:r.timeMs, cpm:r.cpm }; })
+    }).then(function(){ alert("명예의 전당에 올렸어요! 이제 새 대회를 열면 돼요."); })
+      .catch(function(){ alert("올리지 못했어요. 다시 로그인해 주세요."); });
+  });
+  $("t-hall-undo").addEventListener("click", function(){
+    var hall = Store.getHall();
+    if (!hall.length){ alert("취소할 등록이 없어요."); return; }
+    var last = hall[hall.length - 1];
+    if (!confirm("'" + last.contestName + "'의 명예의 전당 등록을 취소할까요?")) return;
+    Store.undoHall().catch(function(){ alert("취소하지 못했어요. 다시 로그인해 주세요."); });
+  });
   $("t-open").addEventListener("click", function(){
     var name = $("t-name").value.trim();
     if (!name){ alert("대회 이름을 입력해 주세요. (예: 행복초등학교 5학년 타자대회)"); $("t-name").focus(); return; }
+    var cur = Store.getContest();
+    if (cur && ranking().length && !Store.getHall().some(function(h){ return h.contestId === cur.id; })
+      && !confirm("지금 대회 우승자를 아직 명예의 전당에 올리지 않았어요.\n이대로 새 대회를 열면 쉬어가는 친구 없이 시작해요. 계속할까요?")) return;
     if (!confirm("'" + name + "'을(를) 새로 만들까요?\n지금 대회는 사라져요.\n(만든 뒤 '대회 시작'을 눌러야 학생들이 들어와요)")) return;
     Store.openContest({ id:"c" + Date.now(), type:draftType, name:name, open:false, stages:draftStages.slice().sort(), words:draftWords.map(function(w){ return w.hint ? w : w.w; }) })
       .then(function(){
