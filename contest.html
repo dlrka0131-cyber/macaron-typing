@@ -89,6 +89,13 @@
   .rank-item.me{ outline:3px solid #7b61ff; }
   .rank-item.rest{ background:#f4f1fa; border-style:dashed; border-color:#cfc6e6; opacity:.85; }
   .rank-item .rest-tag{ font-size:13px; color:#7b61ff; background:#fff; border:1px solid #cfc6e6; border-radius:10px; padding:2px 8px; white-space:nowrap; }
+  .school-tabs{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
+  .school-btn{
+    background:#fff; color:#7b61ff; border:3px solid #cfc6e6; border-radius:24px; padding:10px 24px;
+    font-size:20px; font-family:'ONEMobilePOP', sans-serif; cursor:pointer; box-shadow:0 4px 0 #dcd6ff;
+  }
+  .school-btn.on{ background:#7b61ff; color:#fff; border-color:#5e35b1; box-shadow:0 4px 0 #5e35b1; }
+  .school-btn:active{ transform:translateY(4px); box-shadow:none; }
   .link-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
   .hall-list{ display:flex; flex-direction:column; gap:18px; }
   .hall-card{ background:#fffaf2; border:4px solid #e2d4c9; border-radius:26px; box-shadow:6px 6px 0 #d5c6b9; padding:18px 22px; }
@@ -336,6 +343,7 @@
   <button class="teacher-btn" id="btn-teacher"><i class="fa-solid fa-user-gear"></i> 선생님 설정</button>
   <div class="header-section">
     <div class="main-title">🏆 마카롱 타자대회</div>
+    <div class="school-tabs" id="school-tabs"></div>
     <div class="contest-banner">
       <div class="cname" id="lobby-cname">대회 준비 중</div>
       <div class="cinfo" id="lobby-cinfo">선생님이 대회를 열면 시작할 수 있어요</div>
@@ -444,7 +452,7 @@
 <div class="screen" id="screen-hall" hidden>
   <button class="home-btn" id="btn-hall-back"><i class="fa-solid fa-arrow-left"></i> 돌아가기</button>
   <div class="header-section">
-    <div class="main-title">👑 명예의 전당</div>
+    <div class="main-title">👑 <span id="hall-school"></span>명예의 전당</div>
     <div class="contest-banner"><div class="cinfo">대회마다 금·은·동 친구들이 올라가요. 올라간 친구는 다음 대회에서 한 번 쉬어가요!</div></div>
   </div>
   <div class="board"><div class="hall-list" id="hall-list"></div></div>
@@ -487,11 +495,22 @@
     </div>
 
     <div id="t-panel" hidden>
+      <div class="t-label">학교</div>
+      <div class="school-tabs" id="t-schools" style="margin:0;justify-content:flex-start"></div>
       <div class="t-label">지금 대회</div>
       <div class="t-current" id="t-current"></div>
       <div id="t-cur-actions">
         <div class="t-row">
           <button class="t-btn go" id="t-toggle"></button>
+        </div>
+        <div class="t-row" style="align-items:center">
+          <span class="t-note" style="margin:0">시작하면 </span>
+          <select class="t-input" id="t-dur" style="width:auto;font-size:16px;padding:8px 12px">
+            <option value="30">30분 뒤 자동 마감</option>
+            <option value="60" selected>1시간 뒤 자동 마감</option>
+            <option value="90">1시간 30분 뒤 자동 마감</option>
+            <option value="0">자동 마감 안 함</option>
+          </select>
         </div>
         <div class="t-row">
           <button class="t-btn danger" id="t-reset"><i class="fa-solid fa-eraser"></i> 순위표만 초기화</button>
@@ -705,10 +724,20 @@
   }
 
   // ---- 저장소 (Firebase: 거북이 코딩 프로젝트를 같이 씀) ----
-  // typingContest/current : 지금 열린 대회 (선생님 계정만 바꿀 수 있음)
+  // typingContest/current : 학교별 대회와 명예의 전당 (선생님 계정만 바꿀 수 있음)
+  //   { schools: { hakdong:{contest, hall}, banwol:{...}, sejeong:{...} } }
+  //   예전 형식(문서 맨 위에 대회가 바로 있음)은 학동초 대회로 읽음
   // typingRecords/*       : 학생 기록 (누구나 추가만 가능, 수정·삭제 불가)
   // 순위표 초기화 = 대회 id만 새로 바꿈. 예전 기록은 남지만 새 id 기록으로만 순위를 셈
-  // open: true일 때만 학생이 들어올 수 있음 (없으면 닫힌 것으로 봄). 대회 삭제 = current 문서를 지움
+  // open: true일 때만 학생이 들어올 수 있음 (없으면 닫힌 것으로 봄). closeAt이 지나면 자동 마감. 대회 삭제 = contest를 null로
+  var SCHOOLS = [
+    { id:"hakdong", name:"학동초" },
+    { id:"banwol",  name:"반월초" },
+    { id:"sejeong", name:"세정초" }
+  ];
+  function schoolName(id){ var s = SCHOOLS.filter(function(k){ return k.id === id; })[0]; return s ? s.name : ""; }
+  function isOpen(c){ return !!(c && c.open && !(c.closeAt && Date.now() >= c.closeAt)); }
+
   var Store = (function(){
     var app = firebase.initializeApp({
       apiKey: "AIzaSyAhg3BDuDCz-AfRtS87De1hv8gfZgzmCv8",
@@ -724,46 +753,90 @@
     var recordsCol = db.collection("typingRecords");
     auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
 
-    var contest = null, records = [], status = "loading", hall = [];
-    var listeners = [], stopRecords = null;
+    var state = emptyState(), school = null, records = [], status = "loading";
+    var listeners = [], stopRecords = null, subId = null;
+    try{
+      var saved = localStorage.getItem("macaron-contest-school");
+      if (SCHOOLS.some(function(k){ return k.id === saved; })) school = saved;
+    }catch(e){}
     function emit(){ listeners.forEach(function(fn){ fn(); }); }
-
-    // current 문서에는 명예의 전당(hall)도 같이 들어 있음. id가 없으면 열린 대회가 없는 것
-    contestRef.onSnapshot(function(snap){
-      var raw = snap.exists ? snap.data() : null;
-      hall = (raw && raw.hall) || [];
-      var c = raw && raw.id ? raw : null;
-      var changed = (c && c.id) !== (contest && contest.id);
-      contest = c;
-      status = "ready";
-      if (changed){
-        if (stopRecords){ stopRecords(); stopRecords = null; }
-        records = [];
-        if (c) stopRecords = recordsCol.where("contestId", "==", c.id).onSnapshot(function(q){
-          records = q.docs.map(function(d){ return d.data(); });
-          emit();
-        }, function(err){ console.error(err); emit(); });
+    function emptyState(){
+      var s = {};
+      SCHOOLS.forEach(function(k){ s[k.id] = { contest:null, hall:[] }; });
+      return s;
+    }
+    function parse(raw){
+      var s = emptyState();
+      if (!raw) return s;
+      if (raw.schools){
+        SCHOOLS.forEach(function(k){
+          var x = raw.schools[k.id];
+          if (x) s[k.id] = { contest:x.contest || null, hall:x.hall || [] };
+        });
+      } else {
+        var c = raw.id ? Object.assign({}, raw) : null;
+        if (c) delete c.hall;
+        s.hakdong = { contest:c, hall:raw.hall || [] };
       }
+      return s;
+    }
+    function cur(){ return school ? state[school] : null; }
+    function curContest(){ var x = cur(); return x ? x.contest : null; }
+
+    // 보고 있는 학교의 대회 기록만 따라감
+    function syncRecords(){
+      var c = curContest(), id = c ? c.id : null;
+      if (id === subId) return;
+      if (stopRecords){ stopRecords(); stopRecords = null; }
+      records = []; subId = id;
+      if (id) stopRecords = recordsCol.where("contestId", "==", id).onSnapshot(function(q){
+        records = q.docs.map(function(d){ return d.data(); });
+        emit();
+      }, function(err){ console.error(err); emit(); });
+    }
+    contestRef.onSnapshot(function(snap){
+      state = parse(snap.exists ? snap.data() : null);
+      status = "ready";
+      syncRecords();
       emit();
     }, function(err){ status = "error"; console.error(err); emit(); });
 
+    // 세 학교를 한 문서에 같이 쓰므로, 고칠 때는 통째로 복사해서 바꾼 뒤 저장
+    function save(fn){
+      if (!school) return Promise.reject(new Error("no school"));
+      var next = JSON.parse(JSON.stringify(state));
+      fn(next[school]);
+      var out = { schools:{} };
+      SCHOOLS.forEach(function(k){ out.schools[k.id] = next[k.id]; });
+      return contestRef.set(out);
+    }
+
     return {
       status: function(){ return status; },
-      getContest: function(){ return contest; },
+      school: function(){ return school; },
+      setSchool: function(id){
+        school = id;
+        try{ localStorage.setItem("macaron-contest-school", id); }catch(e){}
+        syncRecords();
+        emit();
+      },
+      tick: emit,
+      getContest: curContest,
       getRecords: function(){ return records; },
-      getHall: function(){ return hall; },
+      getHall: function(){ var x = cur(); return x ? x.hall : []; },
       // 방금 끝난 대회의 메달 친구들만 새 대회에서 쉬어감 (명예의 전당에 올리지 않았으면 쉬는 친구 없음)
       openContest: function(c){
-        var last = hall[hall.length - 1];
-        var rest = (contest && last && last.contestId === contest.id) ? last.medals.map(function(m){ return m.key; }) : [];
-        return contestRef.set(Object.assign({}, c, { hall: hall, restNames: rest }));
+        return save(function(x){
+          var last = x.hall[x.hall.length - 1];
+          var rest = (x.contest && last && last.contestId === x.contest.id) ? last.medals.map(function(m){ return m.key; }) : [];
+          x.contest = Object.assign({}, c, { restNames: rest });
+        });
       },
-      addHall: function(entry){ return contestRef.update({ hall: hall.concat([entry]) }); },
-      undoHall: function(){ return contestRef.update({ hall: hall.slice(0, -1) }); },
-      addRecord: function(r){ return recordsCol.add(r); },
-      clearRecords: function(){ return contestRef.update({ id: "c" + Date.now() }); },
-      setOpen: function(open){ return contestRef.update({ open: open }); },
-      deleteContest: function(){ return hall.length ? contestRef.set({ hall: hall }) : contestRef.delete(); },
+      addHall: function(entry){ return save(function(x){ x.hall.push(entry); }); },
+      undoHall: function(){ return save(function(x){ x.hall.pop(); }); },
+      clearRecords: function(){ return save(function(x){ if (x.contest) x.contest.id = "c" + Date.now(); }); },
+      setOpen: function(open, closeAt){ return save(function(x){ if (x.contest){ x.contest.open = open; x.contest.closeAt = closeAt || null; } }); },
+      deleteContest: function(){ return save(function(x){ x.contest = null; }); },
       // 거북이 코딩과 같은 방식: 이름을 가짜 이메일로 바꿔서 로그인
       signIn: function(name, pw){
         return auth.signInWithEmailAndPassword(name.trim().toLowerCase().replace(/\s+/g, "_") + "@turtle-coding.local", pw);
@@ -878,9 +951,21 @@
     }).join("");
   }
 
+  function fmtClock(ms){ var d = new Date(ms); return d.getHours() + ":" + ("0" + d.getMinutes()).slice(-2); }
+  function renderSchoolTabs(box){
+    box.innerHTML = SCHOOLS.map(function(k){
+      return '<button type="button" class="school-btn' + (k.id === Store.school() ? " on" : "") + '" data-school="' + k.id + '">' + k.name + '</button>';
+    }).join("");
+  }
+  function onSchoolClick(e){
+    var b = e.target.closest("[data-school]");
+    if (b && b.dataset.school !== Store.school()) Store.setSchool(b.dataset.school);
+  }
+
   var MEDAL_ICON = { gold:"🥇", silver:"🥈", bronze:"🥉" };
   function renderHall(){
     var hall = Store.getHall().slice().reverse();
+    $("hall-school").textContent = schoolName(Store.school()) ? schoolName(Store.school()) + " " : "";
     $("hall-list").innerHTML = hall.length ? hall.map(function(h){
       var d = new Date(h.at);
       return '<div class="hall-card"><div class="hc-title">' + escapeHtml(h.contestName) + '</div>'
@@ -895,11 +980,15 @@
   function renderLobby(){
     var c = Store.getContest();
     var st = Store.status();
-    $("lobby-cname").textContent = c ? c.name : st === "loading" ? "불러오는 중..." : "대회 준비 중";
-    $("lobby-cinfo").textContent = c ? (c.open ? stageText(c) + " · " + countText(c) : "⏳ 선생님이 대회를 시작하면 들어갈 수 있어요")
+    renderSchoolTabs($("school-tabs"));
+    var noSchool = !Store.school();
+    $("lobby-cname").textContent = noSchool ? "우리 학교를 골라 주세요" : c ? c.name : st === "loading" ? "불러오는 중..." : "대회 준비 중";
+    $("lobby-cinfo").textContent = noSchool ? "학교를 고르면 대회에 들어갈 수 있어요"
+      : c ? (isOpen(c) ? stageText(c) + " · " + countText(c) + (c.closeAt ? " · " + fmtClock(c.closeAt) + "에 마감" : "")
+          : c.open ? "⏰ 대회 시간이 끝났어요. 순위표를 확인해 보세요" : "⏳ 선생님이 대회를 시작하면 들어갈 수 있어요")
       : st === "error" ? "대회 정보를 불러오지 못했어요. 인터넷 연결을 확인해 주세요" : "선생님이 대회를 열면 시작할 수 있어요";
-    $("btn-start").disabled = !(c && c.open);
-    if (c && c.open && $("lobby-warn").dataset.closed){ $("lobby-warn").textContent = ""; delete $("lobby-warn").dataset.closed; }
+    $("btn-start").disabled = !isOpen(c);
+    if (isOpen(c) && $("lobby-warn").dataset.closed){ $("lobby-warn").textContent = ""; delete $("lobby-warn").dataset.closed; }
     $("rule-count").textContent = "모두 똑같은 " + (c ? countText(c) : "낱말 20개") + "를 순서대로 쳐요.";
     $("lobby-rank").innerHTML = rankRows(ranking(), 10, false);
     $("rule-rest").hidden = !(c && c.restNames && c.restNames.length);
@@ -928,8 +1017,9 @@
   function tryStart(){
     var c = Store.getContest();
     var name = nameInput.value.replace(/\s+/g, " ").trim();
+    if (!Store.school()){ $("lobby-warn").textContent = "우리 학교를 먼저 골라 주세요!"; return; }
     if (!c){ $("lobby-warn").textContent = "아직 대회가 열리지 않았어요."; return; }
-    if (!c.open){ $("lobby-warn").textContent = "선생님이 대회를 시작할 때까지 기다려 주세요."; return; }
+    if (!isOpen(c)){ $("lobby-warn").textContent = c.open ? "대회 시간이 끝났어요." : "선생님이 대회를 시작할 때까지 기다려 주세요."; return; }
     if (!name){ $("lobby-warn").textContent = "이름을 먼저 입력해 주세요!"; nameInput.focus(); return; }
     $("lobby-warn").textContent = "";
     playerName = name;
@@ -939,6 +1029,9 @@
   nameInput.addEventListener("keydown", function(e){ if (e.key === "Enter" && !e.isComposing) tryStart(); });
   $("btn-board").addEventListener("click", function(){ show(elBoard); });
   $("btn-board-back").addEventListener("click", function(){ show(elLobby); });
+  $("school-tabs").addEventListener("click", onSchoolClick);
+  $("t-schools").addEventListener("click", onSchoolClick);
+  setInterval(Store.tick, 15000); // 자동 마감 시각이 지나면 화면이 스스로 바뀌게
   $("btn-hall").addEventListener("click", function(){ show(elHall); });
   $("btn-hall-back").addEventListener("click", function(){ show(elLobby); });
 
@@ -1001,7 +1094,7 @@
 
   function startGame(){
     var c = Store.getContest();
-    if (!c || !c.open){
+    if (!isOpen(c)){
       stopTimers(); listening = false;
       resultPopup.classList.remove("show");
       show(elLobby);
@@ -1174,13 +1267,16 @@
     var c = Store.getContest();
     $("t-current").innerHTML = c
       ? escapeHtml(c.name) + "<br>" + stageText(c) + " · 순위 " + ranking().length + "명 · 전체 도전 " + Store.getRecords().length + "번"
-        + '<br><span class="t-status ' + (c.open ? 'open">🟢 입장 열림 · 학생들이 참가하고 있어요' : 'closed">🔴 입장 닫힘 · 학생들은 아직 들어올 수 없어요') + '</span>'
-      : "열린 대회가 없어요. 아래에서 새 대회를 만들어 주세요.";
+        + '<br><span class="t-status ' + (isOpen(c) ? 'open">🟢 입장 열림 · 학생들이 참가하고 있어요' + (c.closeAt ? " (" + fmtClock(c.closeAt) + "에 자동 마감)" : "")
+          : c.open ? 'closed">⏰ 시간이 끝나서 자동 마감됐어요' : 'closed">🔴 입장 닫힘 · 학생들은 아직 들어올 수 없어요') + '</span>'
+      : schoolName(Store.school()) + "에는 열린 대회가 없어요. 아래에서 새 대회를 만들어 주세요.";
+    renderSchoolTabs($("t-schools"));
+    $("t-name").placeholder = "예: " + schoolName(Store.school()) + " 5학년 타자대회";
     $("t-cur-actions").hidden = !c;
     var tg = $("t-toggle");
     if (c){
-      tg.className = "t-btn " + (c.open ? "stop" : "go");
-      tg.innerHTML = c.open ? '<i class="fa-solid fa-lock"></i> 입장 마감하기' : '<i class="fa-solid fa-play"></i> 대회 시작 (학생 입장 열기)';
+      tg.className = "t-btn " + (isOpen(c) ? "stop" : "go");
+      tg.innerHTML = isOpen(c) ? '<i class="fa-solid fa-lock"></i> 입장 마감하기' : '<i class="fa-solid fa-play"></i> 대회 시작 (학생 입장 열기)';
     }
   }
   function renderTeacher(){
@@ -1236,6 +1332,7 @@
       .catch(function(){ $("t-pin-msg").textContent = "이름 또는 비밀번호가 달라요."; });
   }
   function afterUnlock(){
+    if (!Store.school()) Store.setSchool(SCHOOLS[0].id);
     var c = Store.getContest();
     draftType = contestType(c);
     draftStages = c ? c.stages.slice() : [1];
@@ -1296,8 +1393,10 @@
   $("t-toggle").addEventListener("click", function(){
     var c = Store.getContest();
     if (!c) return;
-    if (c.open && !confirm("입장을 마감할까요?\n지금 치고 있는 학생은 끝까지 칠 수 있지만, 새로 들어오거나 다시 도전할 수는 없어요.")) return;
-    Store.setOpen(!c.open).catch(function(){ alert("바꾸지 못했어요. 다시 로그인해 주세요."); });
+    var opening = !isOpen(c);
+    if (!opening && !confirm("입장을 마감할까요?\n지금 치고 있는 학생은 끝까지 칠 수 있지만, 새로 들어오거나 다시 도전할 수는 없어요.")) return;
+    var mins = parseInt($("t-dur").value, 10);
+    Store.setOpen(opening, opening && mins ? Date.now() + mins * 60000 : null).catch(function(){ alert("바꾸지 못했어요. 다시 로그인해 주세요."); });
   });
   $("t-delete").addEventListener("click", function(){
     var c = Store.getContest();
