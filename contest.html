@@ -96,6 +96,18 @@
   }
   .school-btn.on{ background:#7b61ff; color:#fff; border-color:#5e35b1; box-shadow:0 4px 0 #5e35b1; }
   .school-btn:active{ transform:translateY(4px); box-shadow:none; }
+  .school-cards{ display:flex; gap:28px; justify-content:center; flex-wrap:wrap; margin-top:34px; padding:0 16px; width:100%; max-width:1100px; }
+  .school-card{
+    flex:1 1 260px; max-width:320px; background:#fffaf2; border:5px solid #e2d4c9; border-radius:32px; box-shadow:8px 8px 0 #d5c6b9;
+    padding:34px 20px 28px; text-align:center; cursor:pointer; font-family:'Pretendard', sans-serif;
+  }
+  .school-card:hover{ transform:translateY(-4px); border-color:#7b61ff; }
+  .school-card:active{ transform:translateY(4px); box-shadow:none; }
+  .school-card .sc-emoji{ font-size:64px; }
+  .school-card .sc-name{ font-family:'ONEMobilePOP', sans-serif; font-size:34px; color:#5e35b1; margin:10px 0 8px; }
+  .school-card .sc-contest{ font-size:15px; color:#8d6e4b; font-weight:bold; min-height:22px; }
+  .school-card .sc-status{ display:inline-block; margin-top:10px; border-radius:14px; padding:4px 14px; font-size:14px; font-weight:bold; background:#f0ecf7; color:#8d7fb5; }
+  .school-card .sc-status.open{ background:#e3f6ea; color:#2f8a5a; }
   .link-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
   .hall-list{ display:flex; flex-direction:column; gap:18px; }
   .hall-card{ background:#fffaf2; border:4px solid #e2d4c9; border-radius:26px; box-shadow:6px 6px 0 #d5c6b9; padding:18px 22px; }
@@ -338,13 +350,25 @@
   <div class="star" style="left:92%;top:25%;animation-delay:1.1s;"></div>
 </div>
 
+<!-- ============ School cards ============ -->
+<div class="screen" id="screen-school">
+  <a href="index.html" class="home-btn"><i class="fa-solid fa-house"></i> 처음으로</a>
+  <button class="teacher-btn" id="btn-teacher2"><i class="fa-solid fa-user-gear"></i> 선생님 설정</button>
+  <div class="header-section">
+    <div class="main-title">🏆 마카롱 타자대회</div>
+    <div class="contest-banner"><div class="cname">우리 학교를 골라 주세요</div></div>
+  </div>
+  <div class="school-cards" id="school-cards"></div>
+  <footer class="footer">제작 : 김정이 선생님 💕 | © 2026 Coding Playground</footer>
+</div>
+
 <!-- ============ Lobby ============ -->
 <div class="screen" id="screen-lobby">
   <a href="index.html" class="home-btn"><i class="fa-solid fa-house"></i> 처음으로</a>
   <button class="teacher-btn" id="btn-teacher"><i class="fa-solid fa-user-gear"></i> 선생님 설정</button>
   <div class="header-section">
-    <div class="main-title">🏆 마카롱 타자대회</div>
-    <div class="school-tabs" id="school-tabs"></div>
+    <div class="main-title">🏆 <span id="lobby-school"></span>마카롱 타자대회</div>
+    <div class="school-tabs"><button type="button" class="school-btn" id="btn-school-back"><i class="fa-solid fa-school"></i> 학교 다시 고르기</button></div>
     <div class="contest-banner">
       <div class="cname" id="lobby-cname">대회 준비 중</div>
       <div class="cinfo" id="lobby-cinfo">선생님이 대회를 열면 시작할 수 있어요</div>
@@ -756,10 +780,6 @@
 
     var state = emptyState(), school = null, records = [], status = "loading";
     var listeners = [], stopRecords = null, subId = null;
-    try{
-      var saved = localStorage.getItem("macaron-contest-school");
-      if (SCHOOLS.some(function(k){ return k.id === saved; })) school = saved;
-    }catch(e){}
     function emit(){ listeners.forEach(function(fn){ fn(); }); }
     function emptyState(){
       var s = {};
@@ -817,12 +837,12 @@
       school: function(){ return school; },
       setSchool: function(id){
         school = id;
-        try{ localStorage.setItem("macaron-contest-school", id); }catch(e){}
         syncRecords();
         emit();
       },
       tick: emit,
       getContest: curContest,
+      contestOf: function(id){ return state[id] ? state[id].contest : null; },
       getRecords: function(){ return records; },
       getHall: function(){ var x = cur(); return x ? x.hall : []; },
       // 방금 끝난 대회의 메달 친구들만 새 대회에서 쉬어감 (명예의 전당에 올리지 않았으면 쉬는 친구 없음)
@@ -875,7 +895,7 @@
 
   // ---- 요소 ----
   var $ = function(id){ return document.getElementById(id); };
-  var elLobby = $("screen-lobby"), elGame = $("screen-game"), elBoard = $("screen-board"), elHall = $("screen-hall");
+  var elLobby = $("screen-lobby"), elGame = $("screen-game"), elBoard = $("screen-board"), elHall = $("screen-hall"), elSchool = $("screen-school");
   var nameInput = $("name-input"), wordInput = $("word-input");
   var resultPopup = $("result-popup"), teacherPopup = $("teacher-popup");
   var sceneEl = $("scene"), queueEl = $("creature-queue"), flowerFieldEl = $("flower-field");
@@ -958,6 +978,16 @@
       return '<button type="button" class="school-btn' + (k.id === Store.school() ? " on" : "") + '" data-school="' + k.id + '">' + k.name + '</button>';
     }).join("");
   }
+  function renderSchoolScreen(){
+    $("school-cards").innerHTML = SCHOOLS.map(function(k){
+      var c = Store.contestOf(k.id);
+      var info = c ? escapeHtml(c.name) : "대회 준비 중";
+      var st = isOpen(c) ? '<span class="sc-status open">🟢 진행 중</span>'
+        : c ? '<span class="sc-status">' + (c.open ? "⏰ 시간 끝" : "⏳ 시작 전") + '</span>' : "";
+      return '<button type="button" class="school-card" data-school="' + k.id + '"><div class="sc-emoji">🏫</div>'
+        + '<div class="sc-name">' + k.name + '</div><div class="sc-contest">' + info + '</div>' + st + '</button>';
+    }).join("");
+  }
   function onSchoolClick(e){
     var b = e.target.closest("[data-school]");
     if (b && b.dataset.school !== Store.school()) Store.setSchool(b.dataset.school);
@@ -982,7 +1012,7 @@
   function renderLobby(){
     var c = Store.getContest();
     var st = Store.status();
-    renderSchoolTabs($("school-tabs"));
+    $("lobby-school").textContent = schoolName(Store.school()) ? schoolName(Store.school()) + " " : "";
     var noSchool = !Store.school();
     $("lobby-cname").textContent = noSchool ? "우리 학교를 골라 주세요" : c ? c.name : st === "loading" ? "불러오는 중..." : "대회 준비 중";
     $("lobby-cinfo").textContent = noSchool ? "학교를 고르면 대회에 들어갈 수 있어요"
@@ -1006,10 +1036,12 @@
     if (!elLobby.hidden) renderLobby();
     if (!elBoard.hidden) renderBoard();
     if (!elHall.hidden) renderHall();
+    if (!elSchool.hidden) renderSchoolScreen();
   });
 
   function show(screen){
-    [elLobby, elGame, elBoard, elHall].forEach(function(el){ el.hidden = el !== screen; });
+    [elSchool, elLobby, elGame, elBoard, elHall].forEach(function(el){ el.hidden = el !== screen; });
+    if (screen === elSchool) renderSchoolScreen();
     if (screen === elLobby) renderLobby();
     if (screen === elBoard) renderBoard();
     if (screen === elHall) renderHall();
@@ -1031,7 +1063,14 @@
   nameInput.addEventListener("keydown", function(e){ if (e.key === "Enter" && !e.isComposing) tryStart(); });
   $("btn-board").addEventListener("click", function(){ show(elBoard); });
   $("btn-board-back").addEventListener("click", function(){ show(elLobby); });
-  $("school-tabs").addEventListener("click", onSchoolClick);
+  $("school-cards").addEventListener("click", function(e){
+    var b = e.target.closest("[data-school]");
+    if (!b) return;
+    Store.setSchool(b.dataset.school);
+    show(elLobby);
+    nameInput.focus();
+  });
+  $("btn-school-back").addEventListener("click", function(){ show(elSchool); });
   $("t-schools").addEventListener("click", onSchoolClick);
   setInterval(Store.tick, 15000); // 자동 마감 시각이 지나면 화면이 스스로 바뀌게
   $("btn-hall").addEventListener("click", function(){ show(elHall); });
@@ -1320,12 +1359,13 @@
     $("t-open").disabled = !draftWords.length;
   }
 
-  $("btn-teacher").addEventListener("click", function(){
+  [$("btn-teacher"), $("btn-teacher2")].forEach(function(b){ b.addEventListener("click", openTeacher); });
+  function openTeacher(){
     $("t-lock").hidden = false; $("t-panel").hidden = true;
     $("t-pin").value = ""; $("t-pin-msg").textContent = "거북이 코딩 선생님 계정으로 들어가요. 창을 닫으면 자동으로 로그아웃돼요.";
     teacherPopup.classList.add("show");
     setTimeout(function(){ $("t-user").focus(); }, 50);
-  });
+  }
   function unlock(){
     var user = $("t-user").value, pw = $("t-pin").value;
     if (!user.trim() || !pw){ $("t-pin-msg").textContent = "이름과 비밀번호를 입력해 주세요."; return; }
@@ -1432,8 +1472,7 @@
     if (!elGame.hidden && !resultPopup.classList.contains("show")) wordInput.focus();
   });
 
-  show(elLobby);
-  nameInput.focus();
+  show(elSchool);
 })();
 </script>
 <script>
