@@ -99,6 +99,7 @@
   .link-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
   .hall-list{ display:flex; flex-direction:column; gap:18px; }
   .hall-card{ background:#fffaf2; border:4px solid #e2d4c9; border-radius:26px; box-shadow:6px 6px 0 #d5c6b9; padding:18px 22px; }
+  .hall-card .rank-item .cpm{ font-size:16px; color:#9c8fc7; width:80px; text-align:right; }
   .hall-card .hc-title{ font-family:'ONEMobilePOP', sans-serif; font-size:22px; color:#5e35b1; }
   .hall-card .hc-date{ font-size:14px; color:#a99a8c; font-weight:bold; margin:2px 0 12px; }
   .rank-empty{ text-align:center; color:#a99a8c; font-weight:bold; padding:30px 0; }
@@ -972,7 +973,8 @@
         + '<div class="hc-date">' + d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate() + '</div>'
         + '<div class="rank-list">' + h.medals.map(function(m, i){
           return '<div class="rank-item top' + (i + 1) + '"><span class="rk">' + MEDAL_ICON[m.medal] + '</span>'
-            + '<span class="nm">' + escapeHtml(m.name) + '</span><span class="tm">' + fmtSec(m.timeMs) + '초</span></div>';
+            + '<span class="nm">' + escapeHtml(m.name) + '</span>' + (m.cpm ? '<span class="cpm">' + m.cpm + '타</span>' : '')
+            + '<span class="tm">' + fmtSec(m.timeMs) + '초</span></div>';
         }).join("") + '</div></div>';
     }).join("") : '<div class="rank-empty">아직 올라간 친구가 없어요. 첫 번째 주인공을 기다려요!</div>';
   }
@@ -1359,7 +1361,7 @@
     var top = ranking().filter(function(r){ return !r.rest; }).slice(0, 3);
     if (!top.length){ alert("순위에 오른 친구가 아직 없어요."); return; }
     var icons = ["🥇", "🥈", "🥉"];
-    if (!confirm("명예의 전당에 올릴까요?\n\n" + top.map(function(r, i){ return icons[i] + " " + r.name + " (" + fmtSec(r.timeMs) + "초)"; }).join("\n")
+    if (!confirm("명예의 전당에 올릴까요?\n\n" + top.map(function(r, i){ return icons[i] + " " + r.name + " (" + fmtSec(r.timeMs) + "초 · " + r.cpm + "타)"; }).join("\n")
       + "\n\n이 친구들은 다음 새 대회에서 메달 순위에서 쉬어가요.")) return;
     var kinds = ["gold", "silver", "bronze"];
     Store.addHall({
