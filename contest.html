@@ -844,6 +844,7 @@
       getContest: curContest,
       contestOf: function(id){ return state[id] ? state[id].contest : null; },
       getRecords: function(){ return records; },
+      addRecord: function(rec){ return recordsCol.add(rec); },
       getHall: function(){ var x = cur(); return x ? x.hall : []; },
       // 방금 끝난 대회의 메달 친구들만 새 대회에서 쉬어감 (명예의 전당에 올리지 않았으면 쉬는 친구 없음)
       openContest: function(c){
