@@ -51,6 +51,24 @@
   }
   .contest-banner .cname{ font-family:'ONEMobilePOP', sans-serif; font-size:26px; color:#e85a7f; }
   .contest-banner .cinfo{ font-size:15px; color:#8d6e4b; font-weight:bold; }
+  .game-left{ margin-left:10px; padding:3px 12px; border-radius:14px; background:#7be0ff; color:#0d3b57; font-weight:bold; font-size:15px; }
+  .game-left:empty{ display:none; }
+  .game-left.urgent{ background:#ff5c7a; color:#fff; animation:clockPulse 1s ease-in-out infinite; }
+  .clock{ margin:6px auto 0; width:92px; }
+  .timeup{ position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:300; max-width:92vw; background:#e85a7f; color:#fff; border-radius:22px; padding:16px 28px; text-align:center; box-shadow:0 10px 30px rgba(120,60,100,.35); animation:timeupIn .4s ease-out; }
+  .timeup[hidden]{ display:none; }
+  .timeup .tu-big{ font-family:'ONEMobilePOP', sans-serif; font-size:34px; }
+  .timeup .tu-sub{ font-size:16px; font-weight:bold; margin-top:4px; }
+  .timeup button{ margin-top:10px; border:0; border-radius:14px; padding:8px 22px; font:inherit; font-weight:bold; color:#e85a7f; background:#fff; cursor:pointer; }
+  @keyframes timeupIn{ from{ opacity:0; transform:translate(-50%,-20px); } }
+  .clock svg{ display:block; width:100%; height:auto; }
+  .clock .c-track{ fill:#fff; stroke:#efe4fb; stroke-width:10; }
+  .clock .c-ring{ fill:none; stroke-width:10; stroke-linecap:round; transform:rotate(-90deg); transform-origin:80px 80px; transition:stroke-dashoffset .9s linear; }
+  .clock .c-tick{ stroke:#d9c8ef; stroke-width:2; stroke-linecap:round; }
+  .clock .c-label{ font-size:14px; font-weight:bold; fill:#a99a8c; text-anchor:middle; }
+  .clock .c-digits{ font-family:'ONEMobilePOP', sans-serif; font-size:44px; text-anchor:middle; font-variant-numeric:tabular-nums; }
+  .clock.urgent .c-digits{ animation:clockPulse 1s ease-in-out infinite; }
+  @keyframes clockPulse{ 50%{ opacity:.55; } }
 
   .lobby-row{ display:flex; gap:28px; margin-top:28px; align-items:stretch; justify-content:center; flex-wrap:wrap; padding:0 16px; width:100%; max-width:1100px; }
   .panel{
@@ -326,6 +344,17 @@
   .t-btn:active{ transform:translateY(5px); box-shadow:none; }
   .t-note{ font-size:13px; color:#a99a8c; margin-top:8px; line-height:1.5; }
   .t-current{ background:#fff; border-radius:16px; padding:12px 16px; border:2px solid #f0e6dc; color:#6d5a4a; font-weight:bold; font-size:15px; line-height:1.6; }
+  .t-sec{ background:#fffaf5; border:2px solid #efe6f8; border-radius:20px; padding:14px 16px 16px; margin-top:14px; }
+  .t-sec-title{ font-weight:bold; color:#5e35b1; font-size:16px; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .t-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .t-field{ display:flex; flex-direction:column; gap:4px; }
+  .t-field > span{ font-weight:bold; color:#8d6e4b; font-size:14px; }
+  .t-field > small{ font-size:12px; color:#a99a8c; }
+  .t-field .t-input{ font-size:16px; padding:8px 12px; }
+  .t-more{ margin-top:14px; border-top:2px dashed #e8dccf; padding-top:10px; }
+  .t-more summary{ cursor:pointer; font-weight:bold; color:#8d6e4b; font-size:14px; padding:4px 0; }
+  .t-more .t-btn{ font-size:14px; padding:10px 12px; }
+  @media (max-width:520px){ .t-grid{ grid-template-columns:1fr; } }
   .t-close{ position:absolute; top:22px; right:22px; background:none; border:none; font-size:24px; color:#a99a8c; cursor:pointer; }
 
   .footer{ color:#7b61ff; margin-top:30px; text-align:center; }
@@ -372,6 +401,7 @@
     <div class="contest-banner">
       <div class="cname" id="lobby-cname">대회 준비 중</div>
       <div class="cinfo" id="lobby-cinfo">선생님이 대회를 열면 시작할 수 있어요</div>
+      <div class="clock" id="lobby-clock" hidden></div>
     </div>
   </div>
 
@@ -402,10 +432,16 @@
 </div>
 
 <!-- ============ Game ============ -->
+<div class="timeup" id="timeup" hidden>
+  <div class="tu-big">⏰ 시간 종료!</div>
+  <div class="tu-sub" id="timeup-sub">대회가 끝났어요. 수고했어요!</div>
+  <button type="button" id="timeup-ok">확인</button>
+</div>
+
 <div class="screen" id="screen-game" hidden>
   <div class="game-wrap">
     <div class="top-bar">
-      <div class="tab-label"><i class="fa-solid fa-trophy"></i><span id="game-label">타자대회</span></div>
+      <div class="tab-label"><i class="fa-solid fa-trophy"></i><span id="game-label">타자대회</span><span id="game-left" class="game-left"></span></div>
       <div class="top-controls">
         <button class="icon-btn mute" id="btn-mute" title="소리 켜기/끄기"><i class="fa-solid fa-volume-high" id="mute-icon"></i></button>
         <button class="icon-btn" id="btn-restart" title="처음부터 다시"><i class="fa-solid fa-rotate-right"></i></button>
@@ -520,36 +556,53 @@
     </div>
 
     <div id="t-panel" hidden>
-      <div class="t-label">학교</div>
-      <div class="school-tabs" id="t-schools" style="margin:0;justify-content:flex-start"></div>
-      <div class="t-label">지금 대회</div>
-      <div class="t-current" id="t-current"></div>
-      <div id="t-cur-actions">
-        <div class="t-row">
-          <button class="t-btn go" id="t-toggle"></button>
-        </div>
-        <div class="t-row" style="align-items:center">
-          <span class="t-note" style="margin:0">시작하면 </span>
-          <select class="t-input" id="t-dur" style="width:auto;font-size:16px;padding:8px 12px">
-            <option value="30">30분 뒤 자동 마감</option>
-            <option value="60" selected>1시간 뒤 자동 마감</option>
-            <option value="90">1시간 30분 뒤 자동 마감</option>
-            <option value="0">자동 마감 안 함</option>
-          </select>
-        </div>
-        <div class="t-row">
-          <button class="t-btn danger" id="t-reset"><i class="fa-solid fa-eraser"></i> 순위표만 초기화</button>
-          <button class="t-btn danger" id="t-delete"><i class="fa-solid fa-trash-can"></i> 대회 삭제</button>
-        </div>
-        <div class="t-row">
-          <button class="t-btn primary" id="t-hall"><i class="fa-solid fa-crown"></i> 오늘 우승자를 명예의 전당에 올리기</button>
-          <button class="t-btn plain" id="t-hall-undo"><i class="fa-solid fa-rotate-left"></i> 마지막 등록 취소</button>
-        </div>
-        <div class="t-note">명예의 전당에 올린 뒤 <b>새 대회</b>를 열면, 올라간 금·은·동 친구는 그 대회에서만 메달 순위에서 쉬어가요. (기록은 남아요)</div>
-        <div class="t-note">순위표만 초기화: 같은 낱말로 처음부터 다시 겨룰 때 써요. (예: 같은 학교 다른 반)<br>대회 삭제: 대회가 없어지고 학생 화면은 '대회 준비 중'으로 돌아가요.</div>
+      <div class="t-sec">
+        <div class="t-sec-title"><i class="fa-solid fa-school"></i> 학교</div>
+        <div class="school-tabs" id="t-schools" style="margin:0;justify-content:flex-start"></div>
       </div>
 
-      <div class="t-label" style="margin-top:26px; border-top:2px dashed #e2d4c9; padding-top:20px;">새 대회 열기 · 대회 이름</div>
+      <div class="t-sec">
+        <div class="t-sec-title"><i class="fa-solid fa-flag-checkered"></i> 지금 대회</div>
+        <div class="t-current" id="t-current"></div>
+        <div id="t-cur-actions">
+          <div class="t-grid">
+            <label class="t-field"><span>시작 시각</span>
+              <input type="time" class="t-input" id="t-at">
+              <small>비우면 지금 바로 열려요</small>
+            </label>
+            <label class="t-field"><span>대회 시간</span>
+              <select class="t-input" id="t-dur">
+                <option value="3">3분</option>
+                <option value="5" selected>5분</option>
+                <option value="10">10분</option>
+                <option value="30">30분</option>
+                <option value="60">1시간</option>
+                <option value="0">자동 마감 안 함</option>
+              </select>
+              <small>시작부터 이 시간이 지나면 마감</small>
+            </label>
+          </div>
+          <div class="t-row"><button class="t-btn go" id="t-toggle"></button></div>
+
+          <details class="t-more">
+            <summary>대회 마무리 · 정리</summary>
+            <div class="t-row">
+              <button class="t-btn primary" id="t-hall"><i class="fa-solid fa-crown"></i> 우승자를 명예의 전당에 올리기</button>
+              <button class="t-btn plain" id="t-hall-undo"><i class="fa-solid fa-rotate-left"></i> 마지막 등록 취소</button>
+            </div>
+            <div class="t-row">
+              <button class="t-btn danger" id="t-reset"><i class="fa-solid fa-eraser"></i> 순위표만 초기화</button>
+              <button class="t-btn danger" id="t-delete"><i class="fa-solid fa-trash-can"></i> 대회 삭제</button>
+            </div>
+            <div class="t-note">명예의 전당에 올린 뒤 <b>새 대회</b>를 열면, 올라간 금·은·동 친구는 그 대회에서만 메달 순위에서 쉬어가요. (기록은 남아요)</div>
+            <div class="t-note">순위표만 초기화: 같은 낱말로 처음부터 다시 겨룰 때 써요. (예: 같은 학교 다른 반)<br>대회 삭제: 대회가 없어지고 학생 화면은 '대회 준비 중'으로 돌아가요.</div>
+          </details>
+        </div>
+      </div>
+
+      <div class="t-sec">
+      <div class="t-sec-title"><i class="fa-solid fa-circle-plus"></i> 새 대회 만들기</div>
+      <div class="t-label" style="margin-top:0">대회 이름</div>
       <input type="text" class="t-input" id="t-name" maxlength="30" placeholder="예: 행복초등학교 5학년 타자대회">
       <div class="t-label">대회 종류</div>
       <div class="stage-checks" id="t-types"></div>
@@ -561,7 +614,8 @@
         <button class="t-btn plain" id="t-shuffle"><i class="fa-solid fa-shuffle"></i> 낱말 다시 섞기</button>
         <button class="t-btn primary" id="t-open"><i class="fa-solid fa-flag"></i> 이 낱말로 새 대회 열기</button>
       </div>
-      <div class="t-note">새 대회는 <b>입장 닫힘</b> 상태로 만들어져요. 위의 <b>대회 시작</b>을 눌러야 학생들이 들어올 수 있어요.<br>새 대회를 열면 지금 대회는 사라지고 모든 학생이 위 미리보기 그대로 같은 순서로 쳐요.</div>
+      <div class="t-note">새 대회는 <b>입장 닫힘</b> 상태로 만들어져요. 위의 <b>대회 열기</b>를 눌러야 학생들이 들어올 수 있어요.<br>새 대회를 열면 지금 대회는 사라지고 모든 학생이 위 미리보기 그대로 같은 순서로 쳐요.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -758,10 +812,14 @@
   var SCHOOLS = [
     { id:"hakdong", name:"학동초" },
     { id:"banwol",  name:"반월초" },
-    { id:"sejeong", name:"세정초" }
+    { id:"sejeong", name:"세정초" },
+    { id:"test",    name:"테스트" }
   ];
   function schoolName(id){ var s = SCHOOLS.filter(function(k){ return k.id === id; })[0]; return s ? s.name : ""; }
-  function isOpen(c){ return !!(c && c.open && !(c.closeAt && Date.now() >= c.closeAt)); }
+  // openAt이 있으면 그 시각이 되어야 입장 가능 (그 전에는 대기). 없으면 열자마자 입장
+  function isWaiting(c){ return !!(c && c.open && c.openAt && Date.now() < c.openAt); }
+  function isOpen(c){ return !!(c && c.open && !isWaiting(c) && !(c.closeAt && Date.now() >= c.closeAt)); }
+  function fmtLeft(ms){ var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
 
   var Store = (function(){
     var app = firebase.initializeApp({
@@ -844,7 +902,12 @@
       getContest: curContest,
       contestOf: function(id){ return state[id] ? state[id].contest : null; },
       getRecords: function(){ return records; },
+<<<<<<< HEAD
       addRecord: function(rec){ return recordsCol.add(rec); },
+=======
+      // 학생 기록 추가 (typingRecords는 누구나 추가만 가능)
+      addRecord: function(r){ return recordsCol.add(r); },
+>>>>>>> fade1ec (타자대회: 시작 시각 예약·둥근 시계·시간 종료 알림·테스트 학교, 선생님 설정 정리)
       getHall: function(){ var x = cur(); return x ? x.hall : []; },
       // 방금 끝난 대회의 메달 친구들만 새 대회에서 쉬어감 (명예의 전당에 올리지 않았으면 쉬는 친구 없음)
       openContest: function(c){
@@ -857,7 +920,7 @@
       addHall: function(entry){ return save(function(x){ x.hall.push(entry); }); },
       undoHall: function(){ return save(function(x){ x.hall.pop(); }); },
       clearRecords: function(){ return save(function(x){ if (x.contest) x.contest.id = "c" + Date.now(); }); },
-      setOpen: function(open, closeAt){ return save(function(x){ if (x.contest){ x.contest.open = open; x.contest.closeAt = closeAt || null; } }); },
+      setOpen: function(open, closeAt, openAt, startedAt){ return save(function(x){ if (x.contest){ x.contest.open = open; x.contest.closeAt = closeAt || null; x.contest.openAt = openAt || null; x.contest.startedAt = startedAt || null; } }); },
       deleteContest: function(){ return save(function(x){ x.contest = null; }); },
       // 거북이 코딩과 같은 방식: 이름을 가짜 이메일로 바꿔서 로그인
       signIn: function(name, pw){
@@ -1010,6 +1073,29 @@
     }).join("") : '<div class="rank-empty">아직 올라간 친구가 없어요. 첫 번째 주인공을 기다려요!</div>';
   }
 
+  // 둥근 시계: 열리기까지(분홍) / 대회 남은 시간(보라, 마지막 1분은 빨강)이 고리로 줄어듦
+  function renderClock(c){
+    var box = $("lobby-clock"), now = Date.now(), wait = isWaiting(c), live = isOpen(c) && c.closeAt;
+    box.hidden = !(wait || live);
+    if (box.hidden) return;
+    var left = wait ? c.openAt - now : c.closeAt - now;
+    var total = wait ? 60000 : c.closeAt - (c.startedAt || c.openAt || c.closeAt - 5 * 60000);
+    var frac = Math.max(0, Math.min(1, left / total));
+    var urgent = live && left < 60000;
+    var color = wait ? "#ff8fa6" : urgent ? "#e85a7f" : "#8b5cf6";
+    var R = 68, C = 2 * Math.PI * R, ticks = "";
+    for (var i = 0; i < 12; i++){
+      var a = i * Math.PI / 6, big = i % 3 === 0;
+      ticks += '<line class="c-tick" x1="' + (80 + Math.sin(a) * (big ? 50 : 54)).toFixed(1) + '" y1="' + (80 - Math.cos(a) * (big ? 50 : 54)).toFixed(1)
+        + '" x2="' + (80 + Math.sin(a) * 58).toFixed(1) + '" y2="' + (80 - Math.cos(a) * 58).toFixed(1) + '"/>';
+    }
+    box.classList.toggle("urgent", urgent);
+    box.innerHTML = '<svg viewBox="0 0 160 160"><circle class="c-track" cx="80" cy="80" r="' + R + '"/>'
+      + '<circle class="c-ring" cx="80" cy="80" r="' + R + '" stroke="' + color + '" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + ((1 - frac) * C).toFixed(1) + '"/>'
+      + ticks
+      + '<text class="c-label" x="80" y="62">' + (wait ? "열리기까지" : "남은 시간") + '</text>'
+      + '<text class="c-digits" x="80" y="98" fill="' + color + '">' + fmtLeft(left) + '</text></svg>';
+  }
   function renderLobby(){
     var c = Store.getContest();
     var st = Store.status();
@@ -1017,9 +1103,11 @@
     var noSchool = !Store.school();
     $("lobby-cname").textContent = noSchool ? "우리 학교를 골라 주세요" : c ? c.name : st === "loading" ? "불러오는 중..." : "대회 준비 중";
     $("lobby-cinfo").textContent = noSchool ? "학교를 고르면 대회에 들어갈 수 있어요"
-      : c ? (isOpen(c) ? stageText(c) + " · " + countText(c) + (c.closeAt ? " · " + fmtClock(c.closeAt) + "에 마감" : "")
+      : c ? (isWaiting(c) ? "⏳ " + fmtClock(c.openAt) + "에 대회가 열려요 (이름을 미리 적어 두세요!)"
+          : isOpen(c) ? stageText(c) + " · " + countText(c) + (c.closeAt ? " · " + fmtClock(c.closeAt) + "에 마감" : "")
           : c.open ? "⏰ 대회 시간이 끝났어요. 순위표를 확인해 보세요" : "⏳ 선생님이 대회를 시작하면 들어갈 수 있어요")
       : st === "error" ? "대회 정보를 불러오지 못했어요. 인터넷 연결을 확인해 주세요" : "선생님이 대회를 열면 시작할 수 있어요";
+    renderClock(c);
     $("btn-start").disabled = !isOpen(c);
     if (isOpen(c) && $("lobby-warn").dataset.closed){ $("lobby-warn").textContent = ""; delete $("lobby-warn").dataset.closed; }
     $("rule-count").textContent = "모두 똑같은 " + (c ? countText(c) : "낱말 20개") + "를 순서대로 쳐요.";
@@ -1054,7 +1142,7 @@
     var name = nameInput.value.replace(/\s+/g, " ").trim();
     if (!Store.school()){ $("lobby-warn").textContent = "우리 학교를 먼저 골라 주세요!"; return; }
     if (!c){ $("lobby-warn").textContent = "아직 대회가 열리지 않았어요."; return; }
-    if (!isOpen(c)){ $("lobby-warn").textContent = c.open ? "대회 시간이 끝났어요." : "선생님이 대회를 시작할 때까지 기다려 주세요."; return; }
+    if (!isOpen(c)){ $("lobby-warn").textContent = isWaiting(c) ? fmtClock(c.openAt) + "이 되면 시작할 수 있어요. 조금만 기다려 주세요!" : c.open ? "대회 시간이 끝났어요." : "선생님이 대회를 시작할 때까지 기다려 주세요."; return; }
     if (!name){ $("lobby-warn").textContent = "이름을 먼저 입력해 주세요!"; nameInput.focus(); return; }
     $("lobby-warn").textContent = "";
     playerName = name;
@@ -1073,7 +1161,31 @@
   });
   $("btn-school-back").addEventListener("click", function(){ show(elSchool); });
   $("t-schools").addEventListener("click", onSchoolClick);
-  setInterval(Store.tick, 15000); // 자동 마감 시각이 지나면 화면이 스스로 바뀌게
+  // 1초마다: 열리는 시각·마감 시각이 지나면 화면이 스스로 바뀌고, 남은 시간 표시도 갱신
+  var lastPhase = "";
+  $("timeup-ok").addEventListener("click", function(){ $("timeup").hidden = true; if (listening) wordInput.focus(); });
+  setInterval(function(){
+    var c = Store.getContest();
+    var phase = isWaiting(c) ? "wait" : isOpen(c) ? "live" : "off";
+    if (phase !== lastPhase){
+      if (lastPhase === "live" && phase === "off" && c && c.open && c.closeAt && Date.now() >= c.closeAt){
+        // 모든 학생 화면에 시간 종료 알림 (치던 판은 끝까지 치면 기록됨)
+        $("timeup-sub").textContent = listening ? "치고 있던 판은 끝까지 치면 기록돼요. 순위표를 확인해 보세요!" : "대회가 끝났어요. 순위표를 확인해 보세요!";
+        $("timeup").hidden = false;
+        playFanfare();
+      }
+      if (lastPhase === "wait" && phase === "live" && !elLobby.hidden){
+        playBeep(true);
+        $("lobby-warn").textContent = "🎉 대회가 열렸어요! 이름을 확인하고 시작하세요!";
+      }
+      if (phase !== "off") $("timeup").hidden = true;
+      lastPhase = phase;
+      Store.tick();
+    } else if (!elLobby.hidden && (phase === "wait" || (phase === "live" && c.closeAt))) renderLobby();
+    var left = $("game-left");
+    left.textContent = (!elGame.hidden && phase === "live" && c.closeAt) ? "남은 시간 " + fmtLeft(c.closeAt - Date.now()) : "";
+    left.classList.toggle("urgent", !!(phase === "live" && c.closeAt && c.closeAt - Date.now() < 60000));
+  }, 1000);
   $("btn-hall").addEventListener("click", function(){ show(elHall); });
   $("btn-hall-back").addEventListener("click", function(){ show(elLobby); });
 
@@ -1309,7 +1421,7 @@
     var c = Store.getContest();
     $("t-current").innerHTML = c
       ? escapeHtml(c.name) + "<br>" + stageText(c) + " · 순위 " + ranking().length + "명 · 전체 도전 " + Store.getRecords().length + "번"
-        + '<br><span class="t-status ' + (isOpen(c) ? 'open">🟢 입장 열림 · 학생들이 참가하고 있어요' + (c.closeAt ? " (" + fmtClock(c.closeAt) + "에 자동 마감)" : "")
+        + '<br><span class="t-status ' + (isWaiting(c) ? 'open">⏳ ' + fmtClock(c.openAt) + '에 열려요 · 학생들은 대기실에서 기다리는 중' + (c.closeAt ? " (" + fmtClock(c.closeAt) + "에 자동 마감)" : "") : isOpen(c) ? 'open">🟢 입장 열림 · 학생들이 참가하고 있어요' + (c.closeAt ? " (" + fmtClock(c.closeAt) + "에 자동 마감)" : "")
           : c.open ? 'closed">⏰ 시간이 끝나서 자동 마감됐어요' : 'closed">🔴 입장 닫힘 · 학생들은 아직 들어올 수 없어요') + '</span>'
       : schoolName(Store.school()) + "에는 열린 대회가 없어요. 아래에서 새 대회를 만들어 주세요.";
     renderSchoolTabs($("t-schools"));
@@ -1317,8 +1429,9 @@
     $("t-cur-actions").hidden = !c;
     var tg = $("t-toggle");
     if (c){
-      tg.className = "t-btn " + (isOpen(c) ? "stop" : "go");
-      tg.innerHTML = isOpen(c) ? '<i class="fa-solid fa-lock"></i> 입장 마감하기' : '<i class="fa-solid fa-play"></i> 대회 시작 (학생 입장 열기)';
+      var live = isOpen(c) || isWaiting(c);
+      tg.className = "t-btn " + (live ? "stop" : "go");
+      tg.innerHTML = isWaiting(c) ? '<i class="fa-solid fa-ban"></i> 예약 취소하기' : live ? '<i class="fa-solid fa-lock"></i> 입장 마감하기' : '<i class="fa-solid fa-play"></i> 대회 열기 (시작 시각을 정했다면 그때 열려요)';
     }
   }
   function renderTeacher(){
@@ -1436,10 +1549,18 @@
   $("t-toggle").addEventListener("click", function(){
     var c = Store.getContest();
     if (!c) return;
-    var opening = !isOpen(c);
-    if (!opening && !confirm("입장을 마감할까요?\n지금 치고 있는 학생은 끝까지 칠 수 있지만, 새로 들어오거나 다시 도전할 수는 없어요.")) return;
+    var opening = !isOpen(c) && !isWaiting(c);
+    if (!opening && !confirm(isWaiting(c) ? "예약한 대회를 취소할까요?" : "입장을 마감할까요?\n지금 치고 있는 학생은 끝까지 칠 수 있지만, 새로 들어오거나 다시 도전할 수는 없어요.")) return;
     var mins = parseInt($("t-dur").value, 10);
-    Store.setOpen(opening, opening && mins ? Date.now() + mins * 60000 : null).catch(function(){ alert("바꾸지 못했어요. 다시 로그인해 주세요."); });
+    var openAt = null, at = $("t-at").value;
+    if (opening && at){
+      var hm = at.split(":"), d = new Date();
+      d.setHours(+hm[0], +hm[1], 0, 0);
+      if (d.getTime() <= Date.now()){ alert("이미 지난 시각이에요. 시작 시각을 다시 골라 주세요."); return; }
+      openAt = d.getTime();
+    }
+    var startAt = openAt || Date.now();
+    Store.setOpen(opening, opening && mins ? startAt + mins * 60000 : null, openAt, startAt).catch(function(){ alert("바꾸지 못했어요. 다시 로그인해 주세요."); });
   });
   $("t-delete").addEventListener("click", function(){
     var c = Store.getContest();
